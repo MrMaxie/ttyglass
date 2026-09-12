@@ -2,7 +2,8 @@ schema: spec-driven
 
 context: |
   The repository is release-less and has no changelog, release artifacts, tags, release automation, or product release lifecycle.
-  Dependency constraints, lockfiles, and required tool compatibility metadata remain part of reproducible engineering practice.
+  Dependency and tool versions must be exact in manifests and lockfiles; version ranges are not allowed.
+  Required tool metadata and the neutral Nimble package version do not create a product release lifecycle.
   Accepted behavior belongs in openspec/specs, while active work belongs in openspec/changes.
   Project-facing artifacts are written in English.
 

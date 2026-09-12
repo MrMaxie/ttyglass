@@ -5,7 +5,8 @@
 - Prefer the Nim standard library. Add dependencies only for a current, verified need.
 - Keep source code, documentation, configuration, and other project-facing artifacts in English.
 - This repository is release-less. Do not add changelogs, release artifacts, tags, release automation, or a product release lifecycle unless the user explicitly authorizes one.
-- Dependency constraints, lockfiles, tool compatibility metadata, and the neutral Nimble package version required by tooling are allowed and must remain reproducible.
+- Declare exact dependency and tool versions in manifests and lockfiles. Do not use version ranges such as `>=`, `^`, or `~`.
+- The neutral Nimble package version required by tooling is allowed and does not create a product release lifecycle.
 
 ## Sources of truth
 
