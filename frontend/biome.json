@@ -18,6 +18,9 @@
     "lineEnding": "lf",
     "lineWidth": 120
   },
+  "html": {
+    "experimentalFullSupportEnabled": true
+  },
   "javascript": {
     "formatter": {
       "quoteStyle": "single",

@@ -14,8 +14,7 @@
     "strict": true,
     "noUncheckedIndexedAccess": true,
     "exactOptionalPropertyTypes": true,
-    "noUncheckedSideEffectImports": true,
-    "types": ["vite/client"]
+    "noUncheckedSideEffectImports": true
   },
-  "include": ["src"]
+  "include": ["src/**/*.ts", "src/**/*.svelte", "vite.config.ts"]
 }

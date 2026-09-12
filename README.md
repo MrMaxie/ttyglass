@@ -55,6 +55,12 @@ nubx ttyglass [options] -- <command> [arguments...]
 
 No publication, global installation, tag, or release is part of the current repository state.
 
+## Terminal display controls
+
+Use Display to preview the observed TUI with a different terminal palette for the current session. The choices are the unmodified default output, Catppuccin Mocha, Gruvbox Dark, Nord, Dracula, and Tokyo Night. The preview maps ANSI colors, indexed colors, and application-supplied 24-bit RGB colors into the selected palette while leaving the ttyglass interface unchanged.
+
+Terminal size defaults to Dynamic, which follows the available browser space. Fixed accepts an explicit size from 2 to 1000 columns and 1 to 500 rows and keeps it across browser layout changes. Display overlays the terminal without resizing it. Diagnostics docks below the terminal. In Dynamic mode, opening or closing Diagnostics refits the TUI to the remaining space; in Fixed mode, the configured terminal dimensions remain unchanged and the terminal viewport stays scrollable.
+
 ## Diagnostics
 
 The observed process receives a loopback diagnostics URL and token in environment variables. It can send JSON with only a language standard library. The Diagnostics panel contains only records emitted by that process, never ttyglass lifecycle or resize events. See [dependency-free diagnostics](docs/diagnostics.md).

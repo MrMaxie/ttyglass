@@ -39,6 +39,40 @@ ttyglass MUST run the command through a real PTY on POSIX or ConPTY on Windows a
 - **WHEN** the observed application redraws its terminal screen and the user scrolls the terminal viewport
 - **THEN** ttyglass keeps the current terminal screen visible instead of exposing stale redraw history
 
+#### Scenario: The user opens browser diagnostics
+
+- **WHEN** the user opens or closes Diagnostics
+- **THEN** ttyglass docks the panel below the terminal and fits a dynamically sized TUI once to the remaining space without covering terminal content
+
+#### Scenario: The user opens browser diagnostics with a fixed terminal size
+
+- **WHEN** the user opens or closes Diagnostics while fixed terminal sizing is active
+- **THEN** ttyglass keeps the configured terminal dimensions and keeps the terminal viewport scrollable without covering terminal content
+
+### Requirement: Terminal display controls are session-local
+
+ttyglass MUST let the user preview the observed TUI with its unmodified output or the built-in Catppuccin Mocha, Gruvbox Dark, Nord, Dracula, and Tokyo Night terminal color schemes. The preview MUST map ANSI colors, indexed colors, and application-supplied 24-bit RGB colors into the selected palette while leaving the ttyglass browser chrome unchanged. ttyglass MUST also let the user choose dynamic terminal fitting or a fixed valid column and row count. These controls MUST affect only the current browser session.
+
+#### Scenario: The user selects a built-in color scheme
+
+- **WHEN** the user selects a color scheme in Display
+- **THEN** ttyglass recolors the terminal output with the corresponding palette without changing the ttyglass interface or restarting the observed process
+
+#### Scenario: The user chooses a fixed terminal size
+
+- **WHEN** the user enters valid columns and rows and applies the fixed size
+- **THEN** ttyglass resizes the observed process to those exact dimensions and keeps them across browser layout changes
+
+#### Scenario: The user chooses dynamic terminal sizing
+
+- **WHEN** the user selects Dynamic or the available browser space changes while Dynamic is active
+- **THEN** ttyglass fits the terminal to the available space and sends a resize only when the resulting columns or rows changed
+
+#### Scenario: The user enters an invalid fixed size
+
+- **WHEN** the fixed columns or rows are outside the documented input bounds
+- **THEN** ttyglass keeps the existing terminal size and shows a validation message
+
 ### Requirement: Observation stays local and session-scoped
 
 ttyglass MUST bind only to `127.0.0.1`, MUST choose an available port by default, MUST authenticate terminal and diagnostics access with a per-run token, and MUST reject unexpected browser origins.
