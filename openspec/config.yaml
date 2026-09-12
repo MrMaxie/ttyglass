@@ -1,0 +1,14 @@
+schema: spec-driven
+
+context: |
+  ttyglass is a small HTTP service written in Nim and built with the standard library.
+  The repository is release-less and has no versions, changelog, release artifacts, or release automation.
+  Accepted behavior belongs in openspec/specs, while active work belongs in openspec/changes.
+  Project-facing artifacts are written in English.
+
+rules:
+  proposal:
+    - "Keep each proposal focused on one observable product or engineering outcome."
+    - "State non-goals when they prevent accidental scope expansion."
+  tasks:
+    - "Break work into independently verifiable steps and name the relevant just command."
