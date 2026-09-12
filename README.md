@@ -4,8 +4,6 @@
   <img src="assets/ttyglass-logo.svg" alt="TTYGlass logo" width="240">
 </p>
 
-A minimal HTTP service written in Nim.
-
 ## Requirements
 
 - Nim
@@ -28,6 +26,7 @@ It responds with `Hello, World!` as plain text.
 ## Development
 
 ```sh
+nimble install --depsOnly
 just fmt
 just check
 just build

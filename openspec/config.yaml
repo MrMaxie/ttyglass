@@ -1,8 +1,8 @@
 schema: spec-driven
 
 context: |
-  ttyglass is a small HTTP service written in Nim and built with the standard library.
-  The repository is release-less and has no versions, changelog, release artifacts, or release automation.
+  The repository is release-less and has no changelog, release artifacts, tags, release automation, or product release lifecycle.
+  Dependency constraints, lockfiles, and required tool compatibility metadata remain part of reproducible engineering practice.
   Accepted behavior belongs in openspec/specs, while active work belongs in openspec/changes.
   Project-facing artifacts are written in English.
 

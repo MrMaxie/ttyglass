@@ -2,10 +2,10 @@
 
 ## Project boundary
 
-- ttyglass is a small HTTP service written in Nim.
 - Prefer the Nim standard library. Add dependencies only for a current, verified need.
 - Keep source code, documentation, configuration, and other project-facing artifacts in English.
-- This repository is release-less. Do not add version numbers, changelogs, release artifacts, tags, or release automation unless the user explicitly authorizes a new lifecycle.
+- This repository is release-less. Do not add changelogs, release artifacts, tags, release automation, or a product release lifecycle unless the user explicitly authorizes one.
+- Dependency constraints, lockfiles, tool compatibility metadata, and the neutral Nimble package version required by tooling are allowed and must remain reproducible.
 
 ## Sources of truth
 

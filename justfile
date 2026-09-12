@@ -9,6 +9,7 @@ fmt:
 
 # Run compiler checks without producing an application binary.
 check:
+	nimble check
 	nim check src/ttyglass.nim
 
 # Build an optimized local binary.
