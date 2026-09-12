@@ -1,5 +1,9 @@
 # ttyglass
 
+<p align="center">
+  <img src="assets/ttyglass-logo.svg" alt="TTYGlass logo" width="240">
+</p>
+
 A minimal HTTP service written in Nim.
 
 ## Requirements
@@ -29,4 +33,6 @@ just check
 just build
 ```
 
-`nimpretty`, included with Nim, is the project formatter.
+## License
+
+This project is licensed under the [Apache License 2.0](LICENSE).
