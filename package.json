@@ -1,0 +1,13 @@
+{
+  "name": "ttyglass-workspace",
+  "private": true,
+  "packageManager": "nub@0.7.5",
+  "devEngines": {
+    "packageManager": {
+      "name": "nub",
+      "version": "^0.7.5",
+      "onFail": "ignore"
+    }
+  },
+  "workspaces": ["frontend"]
+}

@@ -2,3 +2,7 @@ nimcache/
 nimblecache/
 htmldocs/
 build/
+node_modules/
+dist/
+/ttyglass
+/ttyglass.exe
