@@ -2,11 +2,11 @@
 
 ## Project boundary
 
-- Prefer the Nim standard library. Add dependencies only for a current, verified need.
+- Prefer the Node.js standard library. Runtime dependencies are limited to the real terminal bridge and WebSocket transport required by current behavior.
 - Keep source code, documentation, configuration, and other project-facing artifacts in English.
 - This repository is release-less. Do not add changelogs, release artifacts, tags, release automation, or a product release lifecycle unless the user explicitly authorizes one.
 - Declare exact dependency and tool versions in manifests and lockfiles. Do not use version ranges such as `>=`, `^`, or `~`.
-- The neutral Nimble package version required by tooling is allowed and does not create a product release lifecycle.
+- The neutral npm package version required by tooling is allowed and does not create a product release lifecycle.
 
 ## Sources of truth
 
@@ -21,6 +21,6 @@ Do not duplicate the same decision between these layers. Link to the owning arti
 ## Development workflow
 
 - Use the root `justfile` as the command surface.
-- Run `just fmt` after editing Nim source.
-- Run `just check` for compiler validation and `just build` for a release-mode local binary.
+- Run `just fmt` after editing TypeScript, JavaScript, CSS, or HTML source.
+- Run `just check` for static validation, `just build` for package output, and `just test` for automated coverage including real PTY or ConPTY behavior.
 - Preserve unrelated working-tree and private `.local/` content.

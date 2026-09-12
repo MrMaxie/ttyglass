@@ -1,13 +1,58 @@
 {
-  "name": "ttyglass-workspace",
+  "name": "ttyglass",
+  "version": "0.0.0",
   "private": true,
-  "packageManager": "nub@0.7.5",
-  "devEngines": {
-    "packageManager": {
-      "name": "nub",
-      "version": "0.7.5",
-      "onFail": "error"
-    }
+  "description": "Observe and debug real terminal user interfaces in a local browser.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "engines": {
+    "node": "24.18.0"
   },
-  "workspaces": ["frontend"]
+  "packageManager": "nub@0.7.5",
+  "workspaces": [
+    "frontend"
+  ],
+  "bin": {
+    "ttyglass": "dist/cli.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "assets/ttyglass-logo.svg",
+    "dist",
+    "docs",
+    "frontend/dist",
+    "skills",
+    "LICENSE",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "node scripts/clean.mjs && nub --filter @ttyglass/frontend run build && tsc -p tsconfig.node.json",
+    "check": "nub --filter @ttyglass/frontend run check && biome check src test scripts && tsc --noEmit -p tsconfig.node.json",
+    "format": "nub --filter @ttyglass/frontend run format && biome format --write src test scripts",
+    "pretest": "nub run build",
+    "test": "node --test test/*.test.mjs",
+    "ttyglass": "node dist/cli.js"
+  },
+  "allowBuilds": {
+    "node-pty": true
+  },
+  "allowScripts": {
+    "node-pty": true
+  },
+  "dependencies": {
+    "node-pty": "1.1.0",
+    "ws": "8.21.3"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.5.13",
+    "@types/node": "22.20.2",
+    "@types/ws": "8.18.1",
+    "typescript": "7.0.2"
+  }
 }

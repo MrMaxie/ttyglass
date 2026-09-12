@@ -1,0 +1,28 @@
+---
+name: ttyglass
+description: Run and inspect a real terminal user interface in ttyglass when Claude Code needs visual evidence, keyboard interaction, resize verification, or separate diagnostics without modifying the observed project.
+---
+
+# Inspect a TUI with ttyglass
+
+Use ttyglass to let Claude Code see and operate a real TUI through a local browser. It is for visual assessment, interaction debugging, responsive terminal checks, and diagnostics that must remain separate from the terminal screen.
+
+## Workflow
+
+1. Identify the exact project command that normally starts the TUI. Do not create a mock screen or project-specific wrapper.
+2. From the tested project directory, run `ttyglass -- <command> <arguments>`. Put ttyglass options before `--` and preserve the tested command after it.
+3. Read the authenticated loopback URL printed by ttyglass and open that exact URL with an available browser tool.
+4. Verify the real rendered state before interacting. Exercise only actions authorized by the user.
+5. Check relevant terminal sizes, keyboard navigation, focus, errors, loading and empty states, and process exit behavior. Use Diagnostics for investigation data, not as a substitute for the visible TUI.
+6. Capture evidence only when requested or required by the parent task. State which states and sizes were actually observed.
+7. Close the browser client and stop ttyglass when finished. Confirm the observed process ended.
+
+## Safety
+
+- ttyglass is a local observation tool, not authorization to mutate project or external state.
+- Use the exact loopback URL printed for the current run. Never expose it, its fragment token, or diagnostics token outside the local task.
+- Do not put credentials, personal data, complete environment dumps, or unrelated project content in diagnostics.
+- Do not claim native terminal behavior from a static mock or DOM-only recreation. ttyglass must be connected to the real PTY or ConPTY process.
+- If browser automation is unavailable, report that visual interaction remains unverified instead of inferring it from tests.
+
+See the package `README.md` for CLI options and `docs/diagnostics.md` for dependency-free diagnostic records.

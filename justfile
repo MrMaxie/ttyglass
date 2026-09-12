@@ -1,21 +1,22 @@
-binary := if os_family() == "windows" { "build/ttyglass.exe" } else { "build/ttyglass" }
-
 default:
 	@just --list
 
-# Format Nim source.
+# Format TypeScript, JavaScript, CSS, and HTML sources.
 fmt:
-	nimpretty --indent:2 --maxLineLen:100 src/ttyglass.nim
+	nub run format
 
-# Run compiler checks without producing an application binary.
+# Run static validation.
 check:
-	nimble check
-	nim check src/ttyglass.nim
+	nub run check
 
-# Build an optimized local binary.
+# Build the browser frontend, CLI, and library.
 build:
-	nim c -d:release --out:{{binary}} --nimcache:build/nimcache src/ttyglass.nim
+	nub run build
 
-# Compile and run the HTTP service.
-run:
-	nim r src/ttyglass.nim
+# Run automated tests, including a real PTY or ConPTY session.
+test:
+	nub run test
+
+# Run ttyglass after a local build. Pass ttyglass arguments after `--`.
+run *args:
+	node dist/cli.js {{args}}

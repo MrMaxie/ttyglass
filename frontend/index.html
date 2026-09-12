@@ -3,10 +3,49 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="dark" />
     <title>ttyglass</title>
   </head>
   <body>
-    <div id="app"></div>
+    <main class="shell" data-shell>
+      <header class="toolbar">
+        <div class="identity">
+          <img src="/ttyglass-logo.svg" alt="" width="24" height="24" />
+          <div>
+            <span class="product">ttyglass</span>
+            <strong data-command>Terminal session</strong>
+          </div>
+        </div>
+        <div class="process-state" aria-live="polite">
+          <span class="status-dot" data-status-dot></span>
+          <span data-status>Connecting</span>
+          <span class="pid" data-pid></span>
+        </div>
+        <button type="button" class="secondary" data-restart disabled>Restart</button>
+        <button
+          type="button"
+          class="secondary"
+          data-diagnostics-toggle
+          aria-expanded="false"
+          aria-controls="diagnostics"
+        >
+          Diagnostics
+        </button>
+      </header>
+      <section class="terminal-panel" aria-label="Observed terminal">
+        <div class="terminal" data-terminal></div>
+      </section>
+      <section id="diagnostics" class="diagnostics" aria-labelledby="diagnostics-title" hidden>
+        <header>
+          <div>
+            <h2 id="diagnostics-title">Diagnostics</h2>
+            <p data-diagnostics-description>Structured events emitted by the observed application</p>
+          </div>
+          <button type="button" class="secondary" data-clear disabled>Clear</button>
+        </header>
+        <div class="log-output" data-log-output role="log"></div>
+      </section>
+    </main>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
