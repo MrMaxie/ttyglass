@@ -2,10 +2,10 @@
 
 The `publish.yml` workflow builds and verifies four native packages on their own architectures:
 
-- `ttyglass-win32-x64`
-- `ttyglass-linux-x64-gnu`
-- `ttyglass-darwin-x64`
-- `ttyglass-darwin-arm64`
+- `@mrmaxie/ttyglass-win32-x64`
+- `@mrmaxie/ttyglass-linux-x64-gnu`
+- `@mrmaxie/ttyglass-darwin-x64`
+- `@mrmaxie/ttyglass-darwin-arm64`
 
 It publishes only when a GitHub Release tag exactly matches `v<package.json version>`. Native packages and the root `ttyglass` package are first published under the `candidate` dist-tag. The workflow installs the exact registry version, exercises its CLI, native terminal session, diagnostics, and TypeScript exports, and only then promotes all five packages to `latest`.
 

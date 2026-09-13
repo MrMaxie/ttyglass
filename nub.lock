@@ -18,16 +18,16 @@ importers:
         specifier: 7.0.2
         version: 7.0.2
     optionalDependencies:
-      ttyglass-darwin-arm64:
+      '@mrmaxie/ttyglass-darwin-arm64':
         specifier: 1.0.0
         version: link:packages/darwin-arm64
-      ttyglass-darwin-x64:
+      '@mrmaxie/ttyglass-darwin-x64':
         specifier: 1.0.0
         version: link:packages/darwin-x64
-      ttyglass-linux-x64-gnu:
+      '@mrmaxie/ttyglass-linux-x64-gnu':
         specifier: 1.0.0
         version: link:packages/linux-x64-gnu
-      ttyglass-win32-x64:
+      '@mrmaxie/ttyglass-win32-x64':
         specifier: 1.0.0
         version: link:packages/win32-x64
 

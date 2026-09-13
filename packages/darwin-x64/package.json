@@ -1,5 +1,5 @@
 {
-  "name": "ttyglass-darwin-x64",
+  "name": "@mrmaxie/ttyglass-darwin-x64",
   "version": "1.0.0",
   "description": "macOS x64 native binary for ttyglass.",
   "license": "Apache-2.0",

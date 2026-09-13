@@ -10,10 +10,10 @@ interface NativeTarget {
 }
 
 const targets = new Map<string, NativeTarget>([
-  ['win32:x64', { executable: 'ttyglass.exe', packageName: 'ttyglass-win32-x64' }],
-  ['linux:x64', { executable: 'ttyglass', packageName: 'ttyglass-linux-x64-gnu' }],
-  ['darwin:x64', { executable: 'ttyglass', packageName: 'ttyglass-darwin-x64' }],
-  ['darwin:arm64', { executable: 'ttyglass', packageName: 'ttyglass-darwin-arm64' }],
+  ['win32:x64', { executable: 'ttyglass.exe', packageName: '@mrmaxie/ttyglass-win32-x64' }],
+  ['linux:x64', { executable: 'ttyglass', packageName: '@mrmaxie/ttyglass-linux-x64-gnu' }],
+  ['darwin:x64', { executable: 'ttyglass', packageName: '@mrmaxie/ttyglass-darwin-x64' }],
+  ['darwin:arm64', { executable: 'ttyglass', packageName: '@mrmaxie/ttyglass-darwin-arm64' }],
 ]);
 
 const target = targets.get(`${process.platform}:${process.arch}`);

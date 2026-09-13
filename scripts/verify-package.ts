@@ -44,10 +44,13 @@ const npxRunner =
     ? { command: process.execPath, prefix: [resolve(nodeModulesDirectory, 'npm', 'bin', 'npx-cli.js')] }
     : { command: 'npx', prefix: [] };
 const platformTargets = new Map([
-  ['win32:x64', { directory: 'win32-x64', executable: 'ttyglass.exe', packageName: 'ttyglass-win32-x64' }],
-  ['linux:x64', { directory: 'linux-x64-gnu', executable: 'ttyglass', packageName: 'ttyglass-linux-x64-gnu' }],
-  ['darwin:x64', { directory: 'darwin-x64', executable: 'ttyglass', packageName: 'ttyglass-darwin-x64' }],
-  ['darwin:arm64', { directory: 'darwin-arm64', executable: 'ttyglass', packageName: 'ttyglass-darwin-arm64' }],
+  ['win32:x64', { directory: 'win32-x64', executable: 'ttyglass.exe', packageName: '@mrmaxie/ttyglass-win32-x64' }],
+  ['linux:x64', { directory: 'linux-x64-gnu', executable: 'ttyglass', packageName: '@mrmaxie/ttyglass-linux-x64-gnu' }],
+  ['darwin:x64', { directory: 'darwin-x64', executable: 'ttyglass', packageName: '@mrmaxie/ttyglass-darwin-x64' }],
+  [
+    'darwin:arm64',
+    { directory: 'darwin-arm64', executable: 'ttyglass', packageName: '@mrmaxie/ttyglass-darwin-arm64' },
+  ],
 ]);
 
 const target = platformTargets.get(`${process.platform}:${process.arch}`);
