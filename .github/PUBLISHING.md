@@ -9,6 +9,8 @@ The `publish.yml` workflow builds and verifies four native packages on their own
 
 It publishes only when a GitHub Release tag exactly matches `v<package.json version>`. Native packages and the root `ttyglass` package are first published under the `candidate` dist-tag. The workflow installs the exact registry version, exercises its CLI, native terminal session, diagnostics, and TypeScript exports, and only then promotes all five packages to `latest`.
 
+If npm accepts the packages but registry propagation interrupts verification, run the same workflow manually with the existing release tag. Manual recovery skips builds and publication, verifies the already published version, and promotes its dist-tags only after the package check passes.
+
 ## First publication
 
 An unpublished npm package cannot have a trusted publisher configured yet. Bootstrap the first release with a short-lived granular npm token:

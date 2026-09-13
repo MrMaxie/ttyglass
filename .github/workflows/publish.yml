@@ -1,6 +1,12 @@
 name: CI and npm publish
 
 on:
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: Existing release tag to verify and promote
+        required: true
+        type: string
   push:
     branches:
       - master
@@ -15,6 +21,7 @@ permissions:
 jobs:
   verify:
     name: Verify ${{ matrix.package }}
+    if: github.event_name != 'workflow_dispatch'
     runs-on: ${{ matrix.os }}
     timeout-minutes: 25
     strategy:
@@ -60,7 +67,10 @@ jobs:
 
   publish:
     name: Publish to npm
-    if: github.event_name == 'release' && github.event.action == 'published'
+    if: >-
+      always() &&
+      ((github.event_name == 'release' && github.event.action == 'published') || github.event_name == 'workflow_dispatch') &&
+      (needs.verify.result == 'success' || needs.verify.result == 'skipped')
     needs: verify
     runs-on: ubuntu-latest
     timeout-minutes: 25
@@ -78,6 +88,7 @@ jobs:
           package-manager-cache: false
           registry-url: https://registry.npmjs.org
       - name: Set up Nim
+        if: github.event_name == 'release'
         uses: jiro4989/setup-nim-action@cb1fc1270b117457dd0d9f610ec981fad3369cec # v2
         with:
           nim-version: 2.2.12
@@ -85,34 +96,42 @@ jobs:
       - name: Validate release metadata
         run: node scripts/verify-release.ts
         env:
-          TTYGLASS_RELEASE_TAG: ${{ github.event.release.tag_name }}
+          TTYGLASS_RELEASE_TAG: ${{ github.event_name == 'release' && github.event.release.tag_name || inputs.release_tag }}
       - name: Install dependencies
+        if: github.event_name == 'release'
         run: nub ci
       - name: Download Windows executable
+        if: github.event_name == 'release'
         uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6
         with:
           name: native-win32-x64
           path: packages/win32-x64/bin
       - name: Download Linux executable
+        if: github.event_name == 'release'
         uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6
         with:
           name: native-linux-x64-gnu
           path: packages/linux-x64-gnu/bin
       - name: Download macOS x64 executable
+        if: github.event_name == 'release'
         uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6
         with:
           name: native-darwin-x64
           path: packages/darwin-x64/bin
       - name: Download macOS arm64 executable
+        if: github.event_name == 'release'
         uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6
         with:
           name: native-darwin-arm64
           path: packages/darwin-arm64/bin
       - name: Restore executable permissions
+        if: github.event_name == 'release'
         run: chmod +x packages/linux-x64-gnu/bin/ttyglass packages/darwin-x64/bin/ttyglass packages/darwin-arm64/bin/ttyglass
       - name: Build root package
+        if: github.event_name == 'release'
         run: nub run build
       - name: Publish native packages as candidates
+        if: github.event_name == 'release'
         run: |
           npm publish ./packages/win32-x64 --access public --provenance --tag candidate
           npm publish ./packages/linux-x64-gnu --access public --provenance --tag candidate
@@ -121,11 +140,22 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: Publish root package as candidate
+        if: github.event_name == 'release'
         run: npm publish --access public --provenance --tag candidate
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: Verify exact published package
-        run: node scripts/verify-package.ts --published
+        run: |
+          for attempt in {1..12}; do
+            if node scripts/verify-package.ts --published; then
+              exit 0
+            fi
+            if [ "$attempt" -eq 12 ]; then
+              exit 1
+            fi
+            echo "Registry verification attempt $attempt failed; retrying in 10 seconds"
+            sleep 10
+          done
       - name: Promote verified packages to latest
         run: |
           VERSION=$(node -p "require('./package.json').version")

@@ -125,16 +125,19 @@ async function waitUntil<T>(predicate: () => T | undefined, description: string,
 }
 
 async function terminateProcessTree(child: ReturnType<typeof spawn>): Promise<void> {
-  if (child.exitCode !== null || child.pid === undefined) return;
-  if (process.platform === 'win32') {
-    const killer = spawn('taskkill.exe', ['/pid', String(child.pid), '/t', '/f'], {
-      stdio: 'ignore',
-      windowsHide: true,
-    });
-    await new Promise<void>((resolveExit) => killer.once('exit', () => resolveExit()));
-    return;
+  if (child.exitCode === null && child.pid !== undefined) {
+    if (process.platform === 'win32') {
+      const killer = spawn('taskkill.exe', ['/pid', String(child.pid), '/t', '/f'], {
+        stdio: 'ignore',
+        windowsHide: true,
+      });
+      await new Promise<void>((resolveExit) => killer.once('exit', () => resolveExit()));
+    } else {
+      child.kill('SIGTERM');
+    }
   }
-  child.kill('SIGTERM');
+  if (child.stdout?.closed && child.stderr?.closed) return;
+  await Promise.race([new Promise<void>((resolveClose) => child.once('close', () => resolveClose())), delay(5_000)]);
 }
 
 async function verifySession(executable: string): Promise<void> {
@@ -144,6 +147,10 @@ async function verifySession(executable: string): Promise<void> {
     cwd: projectDirectory,
     stdio: ['ignore', 'pipe', 'pipe'],
     windowsHide: true,
+  });
+  await new Promise<void>((resolveSpawn, rejectSpawn) => {
+    child.once('spawn', resolveSpawn);
+    child.once('error', rejectSpawn);
   });
   let output = '';
   child.stdout.setEncoding('utf8');
@@ -314,5 +321,5 @@ try {
     `verified ttyglass@${manifest.version} through npx, native PTY, diagnostics, and package import\n`,
   );
 } finally {
-  await rm(workspace, { force: true, recursive: true });
+  await rm(workspace, { force: true, recursive: true, maxRetries: 5, retryDelay: 100 });
 }
