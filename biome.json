@@ -9,7 +9,7 @@
     "enabled": true
   },
   "files": {
-    "includes": ["src/**/*.ts", "test/**/*.mjs", "tests/**/*.mjs", "tests/**/*.ts", "scripts/**/*.mjs"]
+    "includes": ["src/**/*.ts", "test/**/*.ts", "tests/**/*.ts", "scripts/**/*.ts"]
   },
   "formatter": {
     "enabled": true,

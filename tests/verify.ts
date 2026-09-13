@@ -4,9 +4,29 @@ import { createServer } from 'node:net';
 import { resolve } from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
 
-import { WebSocket } from 'ws';
+interface Fixture {
+  arguments: string[];
+  command: string;
+  name: string;
+}
 
-const fixtures = [
+interface DiagnosticEntry {
+  event?: string;
+}
+
+interface ServerMessage {
+  data?: string;
+  entries?: DiagnosticEntry[];
+  entry?: DiagnosticEntry;
+  state?: string;
+  type?: string;
+}
+
+interface NodeWebSocketConstructor {
+  new (url: string, options: { headers: Record<string, string> }): WebSocket;
+}
+
+const fixtures: Fixture[] = [
   {
     name: 'TypeScript',
     command: process.execPath,
@@ -39,44 +59,45 @@ const fixtures = [
   },
 ];
 
-async function reservePort() {
+async function reservePort(): Promise<number> {
   const server = createServer();
-  await new Promise((resolveListen, rejectListen) => {
+  await new Promise<void>((resolveListen, rejectListen) => {
     server.once('error', rejectListen);
     server.listen(0, '127.0.0.1', resolveListen);
   });
   const address = server.address();
-  await new Promise((resolveClose) => server.close(resolveClose));
+  await new Promise<void>((resolveClose) => server.close(() => resolveClose()));
   assert.equal(typeof address, 'object');
+  assert.ok(address);
   return address.port;
 }
 
-async function waitUntil(predicate, description, timeout = 20_000) {
+async function waitUntil<T>(predicate: () => T | undefined, description: string, timeout = 20_000): Promise<T> {
   const deadline = Date.now() + timeout;
   while (Date.now() < deadline) {
     const value = predicate();
-    if (value) return value;
+    if (value !== undefined && value !== false) return value;
     await delay(25);
   }
   throw new Error(`Timed out waiting for ${description}`);
 }
 
-function terminalOutput(messages) {
+function terminalOutput(messages: ServerMessage[]): string {
   return messages
     .filter((message) => message.type === 'output')
-    .map((message) => message.data)
+    .map((message) => message.data ?? '')
     .join('');
 }
 
-function diagnosticEntries(messages) {
+function diagnosticEntries(messages: ServerMessage[]): DiagnosticEntry[] {
   return messages.flatMap((message) => {
-    if (message.type === 'log') return [message.entry];
-    if (message.type === 'logs') return message.entries;
+    if (message.type === 'log' && message.entry !== undefined) return [message.entry];
+    if (message.type === 'logs') return message.entries ?? [];
     return [];
   });
 }
 
-async function verifyFixture(fixture) {
+async function verifyFixture(fixture: Fixture): Promise<void> {
   const port = await reservePort();
   const cli = spawn(
     process.execPath,
@@ -86,29 +107,34 @@ async function verifyFixture(fixture) {
   let cliOutput = '';
   cli.stdout.setEncoding('utf8');
   cli.stderr.setEncoding('utf8');
-  cli.stdout.on('data', (data) => {
+  cli.stdout.on('data', (data: string) => {
     cliOutput += data;
   });
-  cli.stderr.on('data', (data) => {
+  cli.stderr.on('data', (data: string) => {
     cliOutput += data;
   });
 
-  let socket;
+  let socket: WebSocket | undefined;
   try {
-    const printedUrl = await waitUntil(() => {
-      const match = cliOutput.match(/ttyglass: (http:\/\/127\.0\.0\.1:\d+\/#token=\S+)/);
-      return match?.[1];
-    }, `${fixture.name} ttyglass startup`);
+    const printedUrl = await waitUntil(
+      () => cliOutput.match(/ttyglass: (http:\/\/127\.0\.0\.1:\d+\/#token=\S+)/)?.[1],
+      `${fixture.name} ttyglass startup`,
+    );
     const url = new URL(printedUrl);
     const token = new URLSearchParams(url.hash.slice(1)).get('token');
     assert.ok(token);
 
-    const messages = [];
-    socket = new WebSocket(`${url.origin}/terminal?token=${token}`, { origin: url.origin });
-    socket.on('message', (raw) => messages.push(JSON.parse(raw.toString())));
-    await new Promise((resolveOpen, rejectOpen) => {
-      socket.once('open', resolveOpen);
-      socket.once('error', rejectOpen);
+    const messages: ServerMessage[] = [];
+    const RuntimeWebSocket = WebSocket as unknown as NodeWebSocketConstructor;
+    socket = new RuntimeWebSocket(`${url.origin.replace('http', 'ws')}/terminal?token=${token}`, {
+      headers: { Origin: url.origin },
+    });
+    socket.addEventListener('message', (event) => {
+      messages.push(JSON.parse(String(event.data)) as ServerMessage);
+    });
+    await new Promise<void>((resolveOpen, rejectOpen) => {
+      socket?.addEventListener('open', () => resolveOpen(), { once: true });
+      socket?.addEventListener('error', rejectOpen, { once: true });
     });
 
     await waitUntil(() => terminalOutput(messages).includes(`| ${fixture.name} |`), `${fixture.name} screen`);
@@ -131,12 +157,12 @@ async function verifyFixture(fixture) {
       () => messages.some((message) => message.type === 'status' && message.state === 'exited'),
       `${fixture.name} orderly exit`,
     );
-    console.log(`verified ${fixture.name}`);
+    process.stdout.write(`verified ${fixture.name}\n`);
   } finally {
     socket?.close();
     if (cli.exitCode === null) cli.kill('SIGTERM');
     await Promise.race([
-      new Promise((resolveExit) => cli.once('exit', resolveExit)),
+      new Promise<void>((resolveExit) => cli.once('exit', () => resolveExit())),
       delay(2_000).then(() => {
         if (cli.exitCode === null) cli.kill('SIGKILL');
       }),

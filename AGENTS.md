@@ -2,16 +2,19 @@
 
 ## Project boundary
 
-- Prefer the Node.js standard library. Runtime dependencies are limited to the real terminal bridge and WebSocket transport required by current behavior.
+- Keep the executable, HTTP and WebSocket server, PTY or ConPTY ownership, process lifecycle, IPC, diagnostics ingestion, and embedded asset delivery in Nim.
+- Keep TypeScript limited to the npm launcher, optional importable diagnostics helpers, tests, and build or verification scripts. Keep Svelte limited to the browser UI.
+- Prefer the Nim and Node.js standard libraries. Add native dependencies only when an established library materially replaces protocol, parsing, CLI, or logging infrastructure.
 - Keep source code, documentation, configuration, and other project-facing artifacts in English.
-- This repository is release-less. Do not add changelogs, release artifacts, tags, release automation, or a product release lifecycle unless the user explicitly authorizes one.
+- Version public releases with Semantic Versioning and maintain `CHANGELOG.md` in Keep a Changelog format.
+- Publish only through the release-gated workflow defined by the accepted OpenSpec behavior.
 - Declare exact dependency and tool versions in manifests and lockfiles. Do not use version ranges such as `>=`, `^`, or `~`.
-- The neutral npm package version required by tooling is allowed and does not create a product release lifecycle.
 
 ## Sources of truth
 
 - `openspec/specs/` describes accepted product and engineering behavior.
 - `openspec/changes/` contains proposed and active work until it is implemented, verified, and archived.
+- `CHANGELOG.md` records consumer-visible outcomes for published versions.
 - `todo.txt` is a lightweight queue for work that has not earned an OpenSpec change.
 - `.local/` is private operational context. Shared project behavior and tracked files must not depend on it.
 - Use these sources directly. The Arcantry CLI is not required for this repository.

@@ -17,6 +17,14 @@ build:
 test:
 	nub run test
 
+# Validate the exact tarball, npx executable, and public library exports without publishing.
+package-check:
+	nub run package:check
+
+# Exercise the exact package version from the public npm registry.
+package-check-published:
+	nub run package:check:published
+
 # Compile and statically check every stress TUI fixture.
 check-tuis: build
 	tsc --noEmit -p tests/typescript/tsconfig.json
@@ -27,7 +35,7 @@ check-tuis: build
 # Exercise every stress TUI through a real ttyglass PTY or ConPTY session.
 verify-tuis: check-tuis
 	nim c --threads:on --hints:off --nimcache:.local/nimcache --out:.local/ttyglass-stress-nim.exe tests/nim/main.nim
-	node tests/verify.mjs
+	node tests/verify.ts
 
 # Run the TypeScript stress TUI through ttyglass.
 tui-typescript *args: build

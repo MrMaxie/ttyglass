@@ -1,11 +1,9 @@
 import { request } from 'node:http';
 
-function sendDiagnostic(record) {
+function sendDiagnostic(record: Record<string, unknown>): void {
   const endpoint = process.env.TTYGLASS_DIAGNOSTICS_URL;
   const token = process.env.TTYGLASS_DIAGNOSTICS_TOKEN;
-  if (endpoint === undefined || token === undefined) {
-    return;
-  }
+  if (endpoint === undefined || token === undefined) return;
   const body = JSON.stringify(record);
   const outgoing = request(endpoint, {
     method: 'POST',
@@ -15,11 +13,11 @@ function sendDiagnostic(record) {
       'Content-Type': 'application/json',
     },
   });
-  outgoing.on('error', () => {});
+  outgoing.on('error', () => undefined);
   outgoing.end(body);
 }
 
-function finish(code = 0) {
+function finish(code = 0): never {
   process.stdout.write('\x1b[?1049l');
   process.exit(code);
 }
@@ -35,7 +33,7 @@ sendDiagnostic({
   fields: { standardLibrary: true },
 });
 
-process.stdin.on('data', (data) => {
+process.stdin.on('data', (data: string) => {
   for (const character of data) {
     if (character === '\x03' || character === 'q') {
       finish();

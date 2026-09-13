@@ -6,3 +6,8 @@ node_modules/
 dist/
 /ttyglass
 /ttyglass.exe
+/packages/*/bin/ttyglass
+/packages/*/bin/ttyglass.exe
+nimble.develop
+nimble.paths
+nimbledeps

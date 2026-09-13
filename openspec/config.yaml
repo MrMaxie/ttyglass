@@ -1,9 +1,9 @@
 schema: spec-driven
 
 context: |
-  The repository is release-less and has no changelog, release artifacts, tags, release automation, or product release lifecycle.
+  npm publication is release-gated: a GitHub Release tag must match the package version, all verification must pass, and the published registry package must pass a post-publication smoke test.
+  Public versions follow Semantic Versioning and CHANGELOG.md follows Keep a Changelog.
   Dependency and tool versions must be exact in manifests and lockfiles; version ranges are not allowed.
-  Required tool metadata and the neutral npm package version do not create a product release lifecycle.
   Accepted behavior belongs in openspec/specs, while active work belongs in openspec/changes.
   Project-facing artifacts are written in English.
 

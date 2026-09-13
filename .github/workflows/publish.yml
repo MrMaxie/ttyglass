@@ -1,0 +1,143 @@
+name: CI and npm publish
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+  release:
+    types:
+      - published
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Verify ${{ matrix.package }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            package: win32-x64
+            executable: ttyglass.exe
+          - os: ubuntu-latest
+            package: linux-x64-gnu
+            executable: ttyglass
+          - os: macos-15-intel
+            package: darwin-x64
+            executable: ttyglass
+          - os: macos-15
+            package: darwin-arm64
+            executable: ttyglass
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - name: Set up Node.js and Nub
+        uses: nubjs/setup-nub@21b317c170eee658503996209cf87b63481be35a # v0
+        with:
+          node-version: 24.18.0
+          nub-version: 0.7.5
+      - name: Set up Nim
+        uses: jiro4989/setup-nim-action@cb1fc1270b117457dd0d9f610ec981fad3369cec # v2
+        with:
+          nim-version: 2.2.12
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Install dependencies
+        run: nub ci
+      - name: Verify package
+        run: nub run package:check
+      - name: Upload native executable
+        if: github.event_name == 'release'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: native-${{ matrix.package }}
+          path: packages/${{ matrix.package }}/bin/${{ matrix.executable }}
+          if-no-files-found: error
+
+  publish:
+    name: Publish to npm
+    if: github.event_name == 'release' && github.event.action == 'published'
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - name: Set up Node.js, Nub, and npm
+        uses: nubjs/setup-nub@21b317c170eee658503996209cf87b63481be35a # v0
+        with:
+          node-version: 24.18.0
+          nub-version: 0.7.5
+          package-manager-cache: false
+          registry-url: https://registry.npmjs.org
+      - name: Set up Nim
+        uses: jiro4989/setup-nim-action@cb1fc1270b117457dd0d9f610ec981fad3369cec # v2
+        with:
+          nim-version: 2.2.12
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Validate release metadata
+        run: node scripts/verify-release.ts
+        env:
+          TTYGLASS_RELEASE_TAG: ${{ github.event.release.tag_name }}
+      - name: Install dependencies
+        run: nub ci
+      - name: Download Windows executable
+        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6
+        with:
+          name: native-win32-x64
+          path: packages/win32-x64/bin
+      - name: Download Linux executable
+        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6
+        with:
+          name: native-linux-x64-gnu
+          path: packages/linux-x64-gnu/bin
+      - name: Download macOS x64 executable
+        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6
+        with:
+          name: native-darwin-x64
+          path: packages/darwin-x64/bin
+      - name: Download macOS arm64 executable
+        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6
+        with:
+          name: native-darwin-arm64
+          path: packages/darwin-arm64/bin
+      - name: Restore executable permissions
+        run: chmod +x packages/linux-x64-gnu/bin/ttyglass packages/darwin-x64/bin/ttyglass packages/darwin-arm64/bin/ttyglass
+      - name: Build root package
+        run: nub run build
+      - name: Publish native packages as candidates
+        run: |
+          npm publish packages/win32-x64 --access public --provenance --tag candidate
+          npm publish packages/linux-x64-gnu --access public --provenance --tag candidate
+          npm publish packages/darwin-x64 --access public --provenance --tag candidate
+          npm publish packages/darwin-arm64 --access public --provenance --tag candidate
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Publish root package as candidate
+        run: npm publish --access public --provenance --tag candidate
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Verify exact published package
+        run: node scripts/verify-package.ts --published
+      - name: Promote verified packages to latest
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          npm dist-tag add ttyglass-win32-x64@${VERSION} latest
+          npm dist-tag add ttyglass-linux-x64-gnu@${VERSION} latest
+          npm dist-tag add ttyglass-darwin-x64@${VERSION} latest
+          npm dist-tag add ttyglass-darwin-arm64@${VERSION} latest
+          npm dist-tag add ttyglass@${VERSION} latest
+          npm dist-tag rm ttyglass-win32-x64 candidate
+          npm dist-tag rm ttyglass-linux-x64-gnu candidate
+          npm dist-tag rm ttyglass-darwin-x64 candidate
+          npm dist-tag rm ttyglass-darwin-arm64 candidate
+          npm dist-tag rm ttyglass candidate
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

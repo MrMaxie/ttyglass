@@ -8,7 +8,7 @@ test('direct diagnostics are a no-op outside ttyglass', async () => {
 });
 
 test('direct diagnostics use the authenticated loopback endpoint', async () => {
-  let request;
+  let request: { init?: RequestInit; input?: string } = {};
   const sent = await sendTtyglassDiagnostic(
     { level: 'info', event: 'ready', fields: { count: 2 } },
     {
@@ -23,8 +23,9 @@ test('direct diagnostics use the authenticated loopback endpoint', async () => {
 
   assert.equal(sent, true);
   assert.equal(request.input, 'http://127.0.0.1:43210/api/diagnostics');
-  assert.equal(request.init.headers.Authorization, 'Bearer test-token');
-  assert.deepEqual(JSON.parse(request.init.body), {
+  assert.ok(request.init);
+  assert.equal((request.init.headers as Record<string, string>).Authorization, 'Bearer test-token');
+  assert.deepEqual(JSON.parse(String(request.init?.body)), {
     level: 'info',
     event: 'ready',
     fields: { count: 2 },
@@ -32,12 +33,12 @@ test('direct diagnostics use the authenticated loopback endpoint', async () => {
 });
 
 test('the writable sink adapts Pino-style JSON lines', async () => {
-  const records = [];
+  const records: unknown[] = [];
   const sink = createTtyglassSink({
     endpoint: 'http://127.0.0.1:43210/api/diagnostics',
     token: 'test-token',
     fetchImplementation: async (_input, init) => {
-      records.push(JSON.parse(init.body));
+      records.push(JSON.parse(String(init?.body)));
       return new Response(null, { status: 202 });
     },
   });

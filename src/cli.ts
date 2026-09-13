@@ -1,87 +1,51 @@
 #!/usr/bin/env node
 
 import { spawn } from 'node:child_process';
+import { createRequire } from 'node:module';
+import { dirname, resolve } from 'node:path';
 
-import type { CliAction } from './options.js';
-import { formatHelp, parseCliArguments, UsageError } from './options.js';
-import { startTtyglass } from './server.js';
+interface NativeTarget {
+  executable: string;
+  packageName: string;
+}
 
-const version = '0.0.0';
+const targets = new Map<string, NativeTarget>([
+  ['win32:x64', { executable: 'ttyglass.exe', packageName: 'ttyglass-win32-x64' }],
+  ['linux:x64', { executable: 'ttyglass', packageName: 'ttyglass-linux-x64-gnu' }],
+  ['darwin:x64', { executable: 'ttyglass', packageName: 'ttyglass-darwin-x64' }],
+  ['darwin:arm64', { executable: 'ttyglass', packageName: 'ttyglass-darwin-arm64' }],
+]);
 
-function openBrowser(url: string): void {
-  const command =
-    process.platform === 'win32'
-      ? { executable: 'rundll32.exe', arguments: ['url.dll,FileProtocolHandler', url] }
-      : process.platform === 'darwin'
-        ? { executable: 'open', arguments: [url] }
-        : { executable: 'xdg-open', arguments: [url] };
-  const child = spawn(command.executable, command.arguments, {
-    detached: true,
-    stdio: 'ignore',
+const target = targets.get(`${process.platform}:${process.arch}`);
+if (target === undefined) {
+  process.stderr.write(`ttyglass: unsupported platform ${process.platform}/${process.arch}\n`);
+  process.exitCode = 1;
+} else {
+  const require = createRequire(import.meta.url);
+  let manifestPath: string;
+  try {
+    manifestPath = require.resolve(`${target.packageName}/package.json`);
+  } catch {
+    process.stderr.write(
+      `ttyglass: the native package ${target.packageName} is missing. Reinstall ttyglass without --no-optional.\n`,
+    );
+    process.exit(1);
+  }
+
+  const executable = resolve(dirname(manifestPath), 'bin', target.executable);
+  const child = spawn(executable, process.argv.slice(2), {
+    stdio: 'inherit',
     windowsHide: true,
   });
   child.once('error', (error) => {
-    process.stderr.write(`ttyglass: could not open the browser: ${error.message}\n`);
+    process.stderr.write(`ttyglass: could not start the native executable: ${error.message}\n`);
+    process.exitCode = 1;
   });
-  child.unref();
-}
-
-async function main(): Promise<void> {
-  let action: CliAction;
-  try {
-    action = parseCliArguments(process.argv.slice(2));
-  } catch (error) {
-    if (error instanceof UsageError) {
-      process.stderr.write(`ttyglass: ${error.message}\n\n${formatHelp()}`);
-      process.exitCode = 2;
+  child.once('exit', (code, signal) => {
+    if (signal !== null) {
+      process.kill(process.pid, signal);
       return;
     }
-    throw error;
-  }
-
-  if (action.kind === 'help') {
-    process.stdout.write(formatHelp());
-    return;
-  }
-  if (action.kind === 'version') {
-    process.stdout.write(`${version}\n`);
-    return;
-  }
-
-  const controller = await startTtyglass({
-    command: action.options.command,
-    commandArguments: action.options.commandArguments,
-    cwd: action.options.cwd,
-    port: action.options.port,
-    diagnosticsLimit: action.options.diagnosticsLimit,
+    process.exitCode = code ?? 1;
   });
-  process.stdout.write(`ttyglass: ${controller.url}\n`);
-  process.stdout.write(`command: ${action.options.command}\n`);
-  process.stdout.write('Press Ctrl+C to stop.\n');
-
-  if (action.options.open) {
-    openBrowser(controller.url);
-  }
-
-  let stopping = false;
-  const stop = (signal: string): void => {
-    if (stopping) {
-      return;
-    }
-    stopping = true;
-    void controller.stop(signal).catch((error: unknown) => {
-      const message = error instanceof Error ? error.message : String(error);
-      process.stderr.write(`ttyglass: shutdown failed: ${message}\n`);
-      process.exitCode = 1;
-    });
-  };
-  process.once('SIGINT', () => stop('SIGINT'));
-  process.once('SIGTERM', () => stop('SIGTERM'));
-  await controller.closed;
 }
-
-main().catch((error: unknown) => {
-  const message = error instanceof Error ? error.message : String(error);
-  process.stderr.write(`ttyglass: ${message}\n`);
-  process.exitCode = 1;
-});

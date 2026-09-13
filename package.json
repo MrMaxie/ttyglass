@@ -1,16 +1,35 @@
 {
   "name": "ttyglass",
-  "version": "0.0.0",
-  "private": true,
+  "version": "1.0.0",
   "description": "Observe and debug real terminal user interfaces in a local browser.",
+  "keywords": [
+    "tui",
+    "terminal",
+    "pty",
+    "debugging",
+    "developer-tools"
+  ],
   "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MrMaxie/ttyglass.git"
+  },
+  "homepage": "https://github.com/MrMaxie/ttyglass#readme",
+  "bugs": {
+    "url": "https://github.com/MrMaxie/ttyglass/issues"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
   "type": "module",
   "engines": {
     "node": "24.18.0"
   },
   "packageManager": "nub@0.7.5",
   "workspaces": [
-    "frontend"
+    "frontend",
+    "packages/*"
   ],
   "bin": {
     "ttyglass": "dist/cli.js"
@@ -26,33 +45,32 @@
     "assets/ttyglass-logo.svg",
     "dist",
     "docs",
-    "frontend/dist",
     "skills",
+    "CHANGELOG.md",
     "LICENSE",
     "README.md"
   ],
   "scripts": {
-    "build": "node scripts/clean.mjs && nub --filter @ttyglass/frontend run build && tsc -p tsconfig.node.json",
-    "check": "nub --filter @ttyglass/frontend run check && biome check src test tests scripts && tsc --noEmit -p tsconfig.node.json",
+    "build": "node scripts/clean.ts && nub --filter @ttyglass/frontend run build && node scripts/build-native.ts && tsc -p tsconfig.node.json",
+    "check": "nub --filter @ttyglass/frontend run check && biome check src test tests scripts && tsc --noEmit -p tsconfig.node.json && nimble check && nimble c --compileOnly --path:src test/test_diagnostics.nim && nimble c --compileOnly --path:src test/test_ipc.nim",
     "format": "nub --filter @ttyglass/frontend run format && biome format --write src test tests scripts",
+    "package:check": "nub run check && nub run test && node scripts/verify-package.ts",
+    "package:check:published": "node scripts/verify-package.ts --published",
+    "prepack": "nub run build",
+    "prepublishOnly": "nub run package:check",
     "pretest": "nub run build",
-    "test": "node --test test/*.test.mjs",
+    "test": "nimble c -r --path:src --nimcache:.local/nimcache/test-diagnostics --out:.local/test-diagnostics test/test_diagnostics.nim && nimble c -r --path:src --nimcache:.local/nimcache/test-ipc --out:.local/test-ipc test/test_ipc.nim && node --test test/*.test.ts",
     "ttyglass": "node dist/cli.js"
   },
-  "allowBuilds": {
-    "node-pty": true
-  },
-  "allowScripts": {
-    "node-pty": true
-  },
-  "dependencies": {
-    "node-pty": "1.1.0",
-    "ws": "8.21.3"
+  "optionalDependencies": {
+    "ttyglass-darwin-arm64": "1.0.0",
+    "ttyglass-darwin-x64": "1.0.0",
+    "ttyglass-linux-x64-gnu": "1.0.0",
+    "ttyglass-win32-x64": "1.0.0"
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.13",
     "@types/node": "22.20.2",
-    "@types/ws": "8.18.1",
     "typescript": "7.0.2"
   }
 }
