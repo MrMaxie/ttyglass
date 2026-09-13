@@ -114,10 +114,10 @@ jobs:
         run: nub run build
       - name: Publish native packages as candidates
         run: |
-          npm publish packages/win32-x64 --access public --provenance --tag candidate
-          npm publish packages/linux-x64-gnu --access public --provenance --tag candidate
-          npm publish packages/darwin-x64 --access public --provenance --tag candidate
-          npm publish packages/darwin-arm64 --access public --provenance --tag candidate
+          npm publish ./packages/win32-x64 --access public --provenance --tag candidate
+          npm publish ./packages/linux-x64-gnu --access public --provenance --tag candidate
+          npm publish ./packages/darwin-x64 --access public --provenance --tag candidate
+          npm publish ./packages/darwin-arm64 --access public --provenance --tag candidate
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: Publish root package as candidate
