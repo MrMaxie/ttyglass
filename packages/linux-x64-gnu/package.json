@@ -1,5 +1,5 @@
 {
-  "name": "@mrmaxie/ttyglass-linux-x64-gnu",
+  "name": "@maxiedev/ttyglass-linux-x64-gnu",
   "version": "1.0.0",
   "description": "Linux x64 glibc native binary for ttyglass.",
   "license": "Apache-2.0",

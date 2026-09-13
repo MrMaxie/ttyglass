@@ -129,15 +129,15 @@ jobs:
       - name: Promote verified packages to latest
         run: |
           VERSION=$(node -p "require('./package.json').version")
-          npm dist-tag add @mrmaxie/ttyglass-win32-x64@${VERSION} latest
-          npm dist-tag add @mrmaxie/ttyglass-linux-x64-gnu@${VERSION} latest
-          npm dist-tag add @mrmaxie/ttyglass-darwin-x64@${VERSION} latest
-          npm dist-tag add @mrmaxie/ttyglass-darwin-arm64@${VERSION} latest
+          npm dist-tag add @maxiedev/ttyglass-win32-x64@${VERSION} latest
+          npm dist-tag add @maxiedev/ttyglass-linux-x64-gnu@${VERSION} latest
+          npm dist-tag add @maxiedev/ttyglass-darwin-x64@${VERSION} latest
+          npm dist-tag add @maxiedev/ttyglass-darwin-arm64@${VERSION} latest
           npm dist-tag add ttyglass@${VERSION} latest
-          npm dist-tag rm @mrmaxie/ttyglass-win32-x64 candidate
-          npm dist-tag rm @mrmaxie/ttyglass-linux-x64-gnu candidate
-          npm dist-tag rm @mrmaxie/ttyglass-darwin-x64 candidate
-          npm dist-tag rm @mrmaxie/ttyglass-darwin-arm64 candidate
+          npm dist-tag rm @maxiedev/ttyglass-win32-x64 candidate
+          npm dist-tag rm @maxiedev/ttyglass-linux-x64-gnu candidate
+          npm dist-tag rm @maxiedev/ttyglass-darwin-x64 candidate
+          npm dist-tag rm @maxiedev/ttyglass-darwin-arm64 candidate
           npm dist-tag rm ttyglass candidate
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
