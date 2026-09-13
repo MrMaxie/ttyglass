@@ -13,13 +13,14 @@ If npm accepts the packages but registry propagation interrupts verification, ru
 
 ## Manual registry verification
 
-Specify a registry version when testing from the ttyglass source checkout:
+Run registry checks from a directory outside the ttyglass source checkout:
 
 ```sh
+cd ..
 npx --yes ttyglass@latest --open -- lazygit
 ```
 
-A bare `npx ttyglass` in this repository is treated by npm as self-execution of the local root package because its package name and binary match the command. It does not prove that npm downloaded the published package. The automated published-package check uses an empty consumer directory and an isolated npm cache.
+Inside this repository, npm can treat `npx ttyglass` and even an explicitly versioned invocation as self-execution of the local root package because its package name and binary match the command. Neither proves that npm downloaded the published package. The automated published-package check uses an isolated consumer package and an isolated npm cache.
 
 ## First publication
 
