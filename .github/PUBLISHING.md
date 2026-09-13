@@ -11,6 +11,16 @@ It publishes only when a GitHub Release tag exactly matches `v<package.json vers
 
 If npm accepts the packages but registry propagation interrupts verification, run the same workflow manually with the existing release tag. Manual recovery skips builds and publication, verifies the already published version, and promotes its dist-tags only after the package check passes.
 
+## Manual registry verification
+
+Specify a registry version when testing from the ttyglass source checkout:
+
+```sh
+npx --yes ttyglass@latest --open -- lazygit
+```
+
+A bare `npx ttyglass` in this repository is treated by npm as self-execution of the local root package because its package name and binary match the command. It does not prove that npm downloaded the published package. The automated published-package check uses an empty consumer directory and an isolated npm cache.
+
 ## First publication
 
 An unpublished npm package cannot have a trusted publisher configured yet. Bootstrap the first release with a short-lived granular npm token:

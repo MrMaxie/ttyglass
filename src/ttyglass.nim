@@ -3,7 +3,7 @@ import std/[os, strutils]
 
 import ttyglass/[pty_host, server]
 
-const TtyglassVersion* = "1.0.0"
+const TtyglassVersion* = "1.0.1"
 
 proc run(
   cwd = "",

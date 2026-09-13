@@ -248,6 +248,17 @@ try {
   const publishedMode = process.argv[2] === '--published';
   assert.equal(process.argv.length <= 3, true, 'usage: verify-package.ts [--published]');
 
+  if (publishedMode) {
+    const ephemeralConsumer = resolve(workspace, 'ephemeral-consumer');
+    const ephemeralCache = resolve(workspace, 'ephemeral-cache');
+    await mkdir(ephemeralConsumer);
+    const ephemeralVersion = await runTool(npxRunner, ['--yes', `${manifest.name}@${manifest.version}`, '--version'], {
+      cwd: ephemeralConsumer,
+      env: { npm_config_cache: ephemeralCache },
+    });
+    assert.equal(ephemeralVersion.stdout.trim(), manifest.version);
+  }
+
   const consumer = resolve(workspace, 'consumer');
   await mkdir(consumer);
   await writeFile(resolve(consumer, 'package.json'), `${JSON.stringify({ private: true, type: 'module' }, null, 2)}\n`);

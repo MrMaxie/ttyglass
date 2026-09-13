@@ -19,16 +19,16 @@ importers:
         version: 7.0.2
     optionalDependencies:
       '@maxiedev/ttyglass-darwin-arm64':
-        specifier: 1.0.0
+        specifier: 1.0.1
         version: link:packages/darwin-arm64
       '@maxiedev/ttyglass-darwin-x64':
-        specifier: 1.0.0
+        specifier: 1.0.1
         version: link:packages/darwin-x64
       '@maxiedev/ttyglass-linux-x64-gnu':
-        specifier: 1.0.0
+        specifier: 1.0.1
         version: link:packages/linux-x64-gnu
       '@maxiedev/ttyglass-win32-x64':
-        specifier: 1.0.0
+        specifier: 1.0.1
         version: link:packages/win32-x64
 
   frontend:

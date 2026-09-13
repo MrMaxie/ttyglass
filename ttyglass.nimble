@@ -1,4 +1,4 @@
-version = "1.0.0"
+version = "1.0.1"
 author = "Maxie"
 description = "Observe and debug real terminal user interfaces in a local browser."
 license = "Apache-2.0"

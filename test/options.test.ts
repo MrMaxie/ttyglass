@@ -7,7 +7,7 @@ import { nativeExecutable } from './helpers.ts';
 test('reports the native package version', () => {
   const result = spawnSync(nativeExecutable(), ['--version'], { encoding: 'utf8', windowsHide: true });
   assert.equal(result.status, 0, result.stderr);
-  assert.equal(result.stdout.trim(), '1.0.0');
+  assert.equal(result.stdout.trim(), '1.0.1');
 });
 
 test('documents the exact command separator and public options', () => {

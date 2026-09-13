@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.0.1] - 2026-09-13
+
+### Fixed
+
+- Verify the published package through a fresh `npx` cache so a local source checkout cannot be mistaken for a successful registry installation.
+- Document how to force registry resolution when manually testing ttyglass from its own source checkout.
+
 ## [1.0.0] - 2026-09-13
 
 ### Added
@@ -20,5 +27,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - Restrict the observer and diagnostics service to loopback, authenticate each session with a fresh token, validate browser origins, and terminate the owned terminal process tree when the session ends.
 
-[Unreleased]: https://github.com/MrMaxie/ttyglass/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/MrMaxie/ttyglass/compare/v1.0.1...HEAD
+[1.0.1]: https://github.com/MrMaxie/ttyglass/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/MrMaxie/ttyglass/releases/tag/v1.0.0
