@@ -252,6 +252,10 @@ try {
     const ephemeralConsumer = resolve(workspace, 'ephemeral-consumer');
     const ephemeralCache = resolve(workspace, 'ephemeral-cache');
     await mkdir(ephemeralConsumer);
+    await writeFile(
+      resolve(ephemeralConsumer, 'package.json'),
+      `${JSON.stringify({ private: true, type: 'module' }, null, 2)}\n`,
+    );
     const ephemeralVersion = await runTool(npxRunner, ['--yes', `${manifest.name}@${manifest.version}`, '--version'], {
       cwd: ephemeralConsumer,
       env: { npm_config_cache: ephemeralCache },
