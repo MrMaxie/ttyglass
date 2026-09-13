@@ -3,6 +3,10 @@
   "version": "1.0.0",
   "description": "Windows x64 native binary for ttyglass.",
   "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MrMaxie/ttyglass.git"
+  },
   "os": ["win32"],
   "cpu": ["x64"],
   "files": ["bin", "LICENSE"],

@@ -4,6 +4,10 @@ import { readFile } from 'node:fs/promises';
 interface Manifest {
   name?: string;
   private?: boolean;
+  repository?: {
+    type?: string;
+    url?: string;
+  };
   version: string;
 }
 
@@ -25,6 +29,11 @@ assert.equal(
   `release tag ${releaseTag} does not match package version ${manifest.version}`,
 );
 for (const nativeManifest of nativeManifests) {
+  assert.equal(
+    nativeManifest.repository?.url,
+    manifest.repository?.url,
+    `${nativeManifest.name ?? 'native package'} repository must match ttyglass for npm provenance`,
+  );
   assert.equal(
     nativeManifest.version,
     manifest.version,

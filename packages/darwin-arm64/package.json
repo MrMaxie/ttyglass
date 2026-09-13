@@ -3,6 +3,10 @@
   "version": "1.0.0",
   "description": "macOS arm64 native binary for ttyglass.",
   "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MrMaxie/ttyglass.git"
+  },
   "os": ["darwin"],
   "cpu": ["arm64"],
   "files": ["bin", "LICENSE"],
