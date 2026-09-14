@@ -1,5 +1,5 @@
 import { spawnSync } from 'node:child_process';
-import { mkdirSync } from 'node:fs';
+import { copyFileSync, mkdirSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 
 const targets = new Map([
@@ -16,6 +16,7 @@ if (target === undefined) {
 
 const output = resolve('packages', target.directory, 'bin', target.executable);
 mkdirSync(dirname(output), { recursive: true });
+copyFileSync(resolve('THIRD_PARTY_NOTICES.md'), resolve('packages', target.directory, 'THIRD_PARTY_NOTICES.md'));
 
 const result = spawnSync(
   'nimble',

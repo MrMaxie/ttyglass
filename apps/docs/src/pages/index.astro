@@ -1,0 +1,160 @@
+---
+import { Code } from 'astro:components';
+import logoUrl from '../../../../assets/ttyglass-logo.svg?url';
+import packageMetadata from '../../../../package.json';
+import LanguageExamples from '../components/LanguageExamples.astro';
+import TerminalPreview from '../components/TerminalPreview.astro';
+import ThreeViews from '../components/ThreeViews.astro';
+import '../styles/global.css';
+
+const base = import.meta.env.BASE_URL;
+const basePath = base.endsWith('/') ? base : `${base}/`;
+const quickStart = 'npx ttyglass --open -- lazygit';
+const headlessCommands = `ttyglass start --name "App" -- npm run tui
+ttyglass screen <session-id> --json
+ttyglass mcp`;
+const version = packageMetadata.version;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <meta
+      name="description"
+      content="Debug any terminal UI with a coding agent using the live terminal, process controls, and diagnostics without changing the app."
+    />
+    <meta name="theme-color" content="#0d0f10" />
+    <link rel="icon" href={logoUrl} />
+    <title>ttyglass - Debug TUIs with coding agents</title>
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="header-inner">
+        <a class="brand" href={base} aria-label="ttyglass home">
+          <img src={logoUrl} alt="" width="32" height="32" />
+          <span>ttyglass</span>
+        </a>
+        <nav aria-label="Main navigation">
+          <a href="https://www.npmjs.com/package/ttyglass">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path fill="currentColor" d="M3 7h18v10h-9v-2h-2v2H3V7Zm2 2v6h3V9H5Zm5 0v4h2V9h-2Zm4 0v6h2v-4h1v4h2V9h-5Z"></path>
+            </svg>
+            npm
+          </a>
+          <a href="https://github.com/MrMaxie/ttyglass" aria-label="Repository">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path fill="currentColor" d="M12 2a10 10 0 0 0-3.16 19.49c.5.09.68-.22.68-.48v-1.87c-2.78.6-3.37-1.18-3.37-1.18-.45-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.61.07-.61 1 .07 1.53 1.03 1.53 1.03.9 1.53 2.35 1.09 2.92.83.09-.65.35-1.09.64-1.34-2.22-.25-4.56-1.11-4.56-4.94 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.64 0 0 .84-.27 2.75 1.02A9.55 9.55 0 0 1 12 6.82a9.5 9.5 0 0 1 2.5.34c1.91-1.29 2.75-1.02 2.75-1.02.55 1.37.2 2.39.1 2.64.64.7 1.03 1.59 1.03 2.68 0 3.84-2.34 4.68-4.57 4.93.36.31.68.92.68 1.86v2.76c0 .27.18.58.69.48A10 10 0 0 0 12 2Z"></path>
+            </svg>
+            Repo
+          </a>
+          <a href="https://github.com/MrMaxie/ttyglass#readme" aria-label="Documentation">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path fill="currentColor" d="M5 3h5.5c.58 0 1.1.25 1.5.64.4-.39.92-.64 1.5-.64H19a2 2 0 0 1 2 2v14H13.5c-.28 0-.5.22-.5.5V21h-2v-1.5a.5.5 0 0 0-.5-.5H3V5a2 2 0 0 1 2-2Zm0 2v12h5.5c.17 0 .34.02.5.05V5.5a.5.5 0 0 0-.5-.5H5Zm8.5 0a.5.5 0 0 0-.5.5v11.55c.16-.03.33-.05.5-.05H19V5h-5.5Z"></path>
+            </svg>
+            Docs
+          </a>
+          <span class="version-badge" aria-label={`Version ${version}`}>v{version}</span>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero" aria-labelledby="hero-title">
+        <div class="hero-copy">
+          <h1 id="hero-title">Debug any TUI <span>with your agent.</span></h1>
+          <p class="hero-intro">
+            Run the command you already use, or open a generic shell. Browser, CLI, and MCP clients can share
+            the same retained terminal while one local service owns every debug session.
+          </p>
+          <ul class="hero-facts" aria-label="Key facts">
+            <li>No source changes</li>
+            <li>Real terminal, not a mock</li>
+            <li>Browser, CLI, and MCP</li>
+          </ul>
+          <div class="quick-command">
+            <code id="quick-start-command">{quickStart}</code>
+            <button type="button" class="copy-button" data-copy-target="quick-start-command">Copy</button>
+          </div>
+          <div class="hero-actions">
+            <a class="primary-action" href="#how-it-works">See how it works</a>
+          </div>
+        </div>
+        <TerminalPreview
+          caption="The actual ttyglass layout: command and process controls, the live TUI, and Diagnostics below it."
+        />
+      </section>
+
+      <ThreeViews />
+
+      <section class="section agent-section headless-section" aria-labelledby="headless-title">
+        <div>
+          <p class="eyebrow">One service, many sessions</p>
+          <h2 id="headless-title">Debug interactively or headlessly.</h2>
+          <p>
+            Start a command or user shell now, attach more clients later, and read the terminal screen,
+            raw ANSI output, process status, dimensions, and diagnostics without requiring a browser.
+          </p>
+        </div>
+        <div class="highlighted-code headless-commands" aria-label="Headless commands">
+          <Code
+            code={headlessCommands}
+            lang="shellscript"
+            theme="github-dark"
+            style="background-color:#080d0f"
+          />
+        </div>
+      </section>
+
+      <LanguageExamples />
+
+      <section class="section agent-section" aria-labelledby="agent-title">
+        <div>
+          <p class="eyebrow">Agent-ready</p>
+          <h2 id="agent-title">Start visual TUI work without a setup detour.</h2>
+          <p>
+            Ready-to-use Codex and Claude Code skills tell an agent how to start and attach sessions,
+            use browser or headless controls, inspect diagnostics, and report only what it verified.
+          </p>
+        </div>
+        <div class="agent-links">
+          <a class="primary-action" href="https://github.com/MrMaxie/ttyglass/tree/master/skills">
+            Open agent skills
+          </a>
+          <a href={`${basePath}diagnostics.md`}>Add application diagnostics</a>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <p class="footer-owner">
+        <span>2026</span>
+        <span class="footer-credit">
+          Created with <span class="sr-only">love</span>
+          <span class="footer-heart" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M12 21.35 10.55 20.03C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35Z"></path></svg>
+          </span>
+          by <a href="https://maxie.dev">Maciej Mieńko / Maxie</a>
+        </span>
+      </p>
+      <nav aria-label="External links">
+        <a href="https://www.linkedin.com/in/maciej-mie%C5%84ko-b0200b190/">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path fill="currentColor" d="M5.3 3.5A2.3 2.3 0 1 1 5.3 8a2.3 2.3 0 0 1 0-4.5ZM3.4 9.8h3.8V21H3.4V9.8Zm6.1 0h3.6v1.5h.1c.5-1 1.7-2 3.6-2 3.8 0 4.5 2.5 4.5 5.8V21h-3.8v-5.2c0-1.2 0-2.9-1.8-2.9s-2.1 1.4-2.1 2.8V21H9.5V9.8Z"></path>
+          </svg>
+          LinkedIn
+        </a>
+        <a href="https://ko-fi.com/MrMaxie">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path
+              fill="currentColor"
+              d="M4 5h13v2h2a3 3 0 0 1 0 6h-2v1a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5V5Zm13 4v2h2a1 1 0 0 0 0-2h-2ZM6 7v7a3 3 0 0 0 3 3h3a3 3 0 0 0 3-3V7H6Z"
+            ></path>
+          </svg>
+          Ko-fi
+        </a>
+      </nav>
+    </footer>
+  </body>
+</html>

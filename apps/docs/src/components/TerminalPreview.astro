@@ -1,0 +1,72 @@
+---
+import logoUrl from '../../../../assets/ttyglass-logo.svg?url';
+import TuiScreen from './TuiScreen.astro';
+
+interface Props {
+  variant?: 'terminal' | 'ttyglass' | 'agent';
+  caption?: string;
+}
+
+const {
+  variant = 'ttyglass',
+  caption = 'The real ttyglass browser interface with the observed terminal and application diagnostics.',
+} = Astro.props;
+
+const usesTtyglass = variant !== 'terminal';
+---
+
+<figure class:list={['terminal-preview', `terminal-preview-${variant}`]}>
+  {
+    usesTtyglass ? (
+      <div class="terminal-toolbar">
+        <div class="terminal-identity">
+          <img src={logoUrl} alt="" width="24" height="24" />
+          <span>
+            <small>ttyglass</small>
+            <strong>node tests/typescript/main.ts</strong>
+          </span>
+        </div>
+        <span class="terminal-status"><i aria-hidden="true" /> Running <b>PID 8421</b></span>
+        <span class="terminal-control">Restart</span>
+        <span class="terminal-control">Display</span>
+        <span class="terminal-control">Diagnostics</span>
+      </div>
+    ) : (
+      <div class="native-terminal-bar">
+        <span class="terminal-dots" aria-hidden="true"><i /><i /><i /></span>
+        <strong>Terminal - node tests/typescript/main.ts</strong>
+      </div>
+    )
+  }
+
+  <TuiScreen />
+
+  {
+    usesTtyglass && (
+      <div class="diagnostics-preview" aria-hidden="true">
+        <div><strong>Diagnostics</strong><span>Clear</span></div>
+        <p><time>12:03:18</time> <b>INFO</b> fixture.ready <span>standardLibraryUi: true</span></p>
+        <p><time>12:03:19</time> <b>DEBUG</b> viewport.changed <span>size: 104x28</span></p>
+      </div>
+    )
+  }
+
+  {
+    variant === 'agent' && (
+      <div class="agent-vision" aria-hidden="true">
+        <span class="agent-sparkles">
+          <svg viewBox="0 0 24 24">
+            <path d="M12 2c.6 4.7 2.7 6.8 7.5 7.5-4.8.7-6.9 2.8-7.5 7.5-.6-4.7-2.7-6.8-7.5-7.5C9.3 8.8 11.4 6.7 12 2Zm6.5 13c.3 2.2 1.3 3.2 3.5 3.5-2.2.3-3.2 1.3-3.5 3.5-.3-2.2-1.3-3.2-3.5-3.5 2.2-.3 3.2-1.3 3.5-3.5Z" />
+          </svg>
+          Agent view
+        </span>
+        <i class="vision-corner vision-corner-top-left" />
+        <i class="vision-corner vision-corner-top-right" />
+        <i class="vision-corner vision-corner-bottom-left" />
+        <i class="vision-corner vision-corner-bottom-right" />
+      </div>
+    )
+  }
+
+  <figcaption>{caption}</figcaption>
+</figure>

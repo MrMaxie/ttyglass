@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { ColorScheme, ColorSchemeId } from './lib/color-schemes';
   import type { TerminalSize, TerminalSizingMode } from './lib/terminal';
+  import MenuSelect from './MenuSelect.svelte';
 
   interface Props {
     schemes: readonly ColorScheme[];
@@ -34,10 +35,6 @@
       draftInitialized = true;
     }
   });
-
-  function selectScheme(event: Event): void {
-    onSchemeChange((event.currentTarget as HTMLSelectElement).value as ColorSchemeId);
-  }
 
   function useDynamicSize(): void {
     validationError = '';
@@ -75,12 +72,14 @@
   </header>
 
   <div class="display-content">
-    <label class="field-label" for="color-scheme">TUI color scheme</label>
-    <select id="color-scheme" value={schemeId} onchange={selectScheme}>
-      {#each schemes as scheme}
-        <option value={scheme.id}>{scheme.label}</option>
-      {/each}
-    </select>
+    <span class="field-label">TUI color scheme</span>
+    <MenuSelect
+      ariaLabel="TUI color scheme"
+      value={schemeId}
+      options={schemes.map((scheme) => ({ value: scheme.id, label: scheme.label }))}
+      placeholder="Select a color scheme"
+      onChange={(value) => onSchemeChange(value as ColorSchemeId)}
+    />
     <p class="field-help">Maps ANSI, indexed, and truecolor output into the selected palette.</p>
 
     <fieldset>
@@ -111,7 +110,7 @@
           <span>Rows</span>
           <input type="number" min="1" max="500" step="1" bind:value={rows} aria-describedby="size-error" />
         </label>
-        <button type="submit">Apply size</button>
+        <button type="submit" class="secondary">Apply size</button>
       </form>
       <p id="size-error" class="validation-message" aria-live="polite">{validationError}</p>
     {:else}

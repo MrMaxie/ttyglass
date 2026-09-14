@@ -6,19 +6,92 @@ Define the generic, local, and authenticated observation boundary for running re
 
 ## Requirements
 
-### Requirement: CLI launches an arbitrary TUI command
+### Requirement: Users can run an arbitrary TUI without adapting the target project
 
-The package MUST expose a `ttyglass` executable that separates its own options from an arbitrary command at `--` and launches the command without a shell in the selected or current working directory.
+ttyglass MUST accept either a complete command after `--` or no command for terminal mode. The target command MUST run immediately in a real platform terminal with inherited environment, default working directory, and forwarded arguments. Starting and keeping the PTY alive MUST NOT depend on a browser connection.
 
 #### Scenario: A user observes an unmodified project command
 
-- **WHEN** the user runs `ttyglass -- <command> <arguments>` from a project directory
-- **THEN** ttyglass launches that exact command and arguments without requiring project configuration or source changes
+- **WHEN** the user runs `ttyglass -- <command> [arguments...]`
+- **THEN** ttyglass creates a command session in the per-user service
+- **AND** runs the complete command inside a real PTY or ConPTY without requiring changes to the target project
 
-#### Scenario: Command separation is missing
+#### Scenario: A command session starts before a browser opens
 
-- **WHEN** the user omits `--` or supplies no command after it
-- **THEN** ttyglass exits with usage guidance and does not launch a process
+- **WHEN** a command session is created by CLI, JSONL, or MCP
+- **THEN** its PTY starts immediately
+- **AND** a browser can attach later and observe the retained state
+
+### Requirement: ttyglass manages multiple independent sessions
+
+One per-user ttyglass service MUST own multiple simultaneous PTY or ConPTY sessions. Each session MUST have an opaque identifier, a distinct authorization token, independent process state, dimensions, diagnostics, snapshot, and raw ANSI output buffer.
+
+#### Scenario: Two sessions run simultaneously
+
+- **WHEN** two clients start different sessions through one ttyglass service
+- **THEN** both PTY sessions run at the same time
+- **AND** input, resize, output, status, and diagnostics remain isolated by session id
+
+#### Scenario: Multiple clients share one session
+
+- **WHEN** browser, CLI, JSONL, or MCP clients attach to one session
+- **THEN** each client can observe current and subsequent state
+- **AND** input is serialized in server receipt order
+- **AND** the last valid resize becomes authoritative and is broadcast to every client
+
+### Requirement: ttyglass supports command and terminal modes
+
+Command sessions MUST execute the complete received argv and MUST be restartable. Terminal sessions MUST start the resolved user shell, display `No command`, and MUST NOT be restartable.
+
+#### Scenario: ttyglass is invoked without a command
+
+- **WHEN** a user invokes `ttyglass` without options or a separator
+- **THEN** ttyglass creates a foreground terminal session using the user's resolved shell
+
+#### Scenario: An empty separator is provided
+
+- **WHEN** a user invokes `ttyglass --` without a command
+- **THEN** ttyglass exits with a usage error that suggests removing the separator for terminal mode
+
+### Requirement: Session metadata preserves argument boundaries
+
+Metadata MUST include `sessionId`, the optional user-provided `name`, `mode`, the complete `argv`, a lossless `displayCommand`, the resolved shell when applicable, and `restartable`. The display command MUST encode every argv value without reducing it to a filename. It does not need to reproduce quoting already removed by the invoking shell.
+
+#### Scenario: Command arguments contain spaces and empty values
+
+- **WHEN** a command session receives arguments that include spaces, quotes, or empty strings
+- **THEN** metadata returns the original argv values unchanged
+- **AND** `displayCommand` distinguishes every value losslessly
+
+#### Scenario: A session is given a name
+
+- **WHEN** a CLI, JSONL, or MCP client starts a session with a non-empty name
+- **THEN** metadata returns that name independently of the command or resolved shell
+
+### Requirement: Headless clients can inspect terminal state
+
+Every session MUST expose a bounded raw ANSI byte stream and a terminal screen snapshot. Raw output MUST expose absolute byte offsets, truncation, and Base64 data. A snapshot MUST expose revision, dimensions, screen lines, cursor position and visibility, and status.
+
+#### Scenario: A client reads output after buffer truncation
+
+- **WHEN** a requested offset precedes the oldest byte retained by the configured buffer limit
+- **THEN** the response begins at the oldest retained offset
+- **AND** marks the response as truncated
+
+#### Scenario: A full-screen application updates the alternate screen
+
+- **WHEN** PTY output uses alternate-screen, Unicode, cursor movement, and resize control sequences
+- **THEN** the snapshot reflects the visible terminal screen, cursor, dimensions, and a newer revision
+
+### Requirement: Disconnected sessions use bounded retention
+
+A running session with no attached clients MUST remain available for five minutes. Reattachment MUST cancel that deadline. A completed session MUST remain readable for five minutes. Explicit stop and service shutdown MUST terminate the full owned process tree.
+
+#### Scenario: A client reconnects during the grace period
+
+- **WHEN** the last client detaches and another client attaches before five minutes pass
+- **THEN** the same session remains running
+- **AND** the attaching client receives its current metadata, snapshot, output, diagnostics, dimensions, and status
 
 ### Requirement: Browser renders the real terminal session
 
@@ -75,17 +148,17 @@ ttyglass MUST let the user preview the observed TUI with its unmodified output o
 
 ### Requirement: Observation stays local and session-scoped
 
-ttyglass MUST bind only to `127.0.0.1`, MUST choose an available port by default, MUST authenticate terminal and diagnostics access with a per-run token, and MUST reject unexpected browser origins.
+ttyglass MUST bind HTTP and WebSocket listeners only to `127.0.0.1`, MUST choose an available port by default, MUST use a management token for session listing, MUST use a distinct token for each session, and MUST reject unexpected browser origins.
 
 #### Scenario: An unauthenticated terminal client connects
 
 - **WHEN** a WebSocket upgrade omits or supplies the wrong session token
-- **THEN** ttyglass rejects the connection without launching the command
+- **THEN** ttyglass rejects the connection without exposing or controlling the session
 
 #### Scenario: ttyglass stops
 
-- **WHEN** the server receives a shutdown signal or its browser client disconnects
-- **THEN** ttyglass terminates only the terminal process tree owned by that session and closes its local transports
+- **WHEN** the service receives a shutdown signal or fails
+- **THEN** ttyglass terminates every process tree owned by that service and closes its local transports
 
 ### Requirement: Diagnostics remain separate and bounded
 
@@ -122,12 +195,12 @@ The package MUST export a direct TypeScript diagnostic sender and a writable JSO
 
 ### Requirement: Agent guidance is included
 
-The package MUST include guidance for Codex and Claude Code that explains ttyglass as a way to see, assess, interact with, and safely debug a real TUI, including cleanup and evidence boundaries.
+The package MUST include guidance for Codex and Claude Code that explains ttyglass as a way to see, assess, interact with, and safely debug a real TUI through browser, stateless CLI, JSONL, or MCP clients, including cleanup and evidence boundaries.
 
 #### Scenario: An agent needs to inspect a TUI
 
-- **WHEN** an agent follows the included skill for an available browser workflow
-- **THEN** it runs the project command through ttyglass, opens the printed authenticated URL, verifies the real rendered states, and stops the ttyglass process when finished
+- **WHEN** an agent follows the included skill using an available ttyglass client
+- **THEN** it runs the project command through ttyglass, verifies real terminal state through the selected client, and stops the owned session when finished
 
 ### Requirement: Package entrypoints support npm distribution
 

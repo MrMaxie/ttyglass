@@ -1,6 +1,6 @@
 {
   "name": "@maxiedev/ttyglass-darwin-arm64",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "macOS arm64 native binary for ttyglass.",
   "license": "Apache-2.0",
   "repository": {
@@ -9,7 +9,7 @@
   },
   "os": ["darwin"],
   "cpu": ["arm64"],
-  "files": ["bin", "LICENSE"],
+  "files": ["bin", "LICENSE", "THIRD_PARTY_NOTICES.md"],
   "publishConfig": {
     "access": "public",
     "provenance": true
