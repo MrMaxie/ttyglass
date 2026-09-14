@@ -95,16 +95,20 @@ proc ensureService*(options: CommonOptions): ServiceDescriptor =
   except CatchableError:
     removeDescriptor()
 
-  spawnService(options)
-
   let deadline = epochTime() + 8.0
   var lastError = ""
+  var nextSpawnAt = 0.0
   while epochTime() < deadline:
     try:
       return liveDescriptor()
     except CatchableError:
       lastError = getCurrentException().msg
-      sleep(25)
+      removeDescriptor()
+    let now = epochTime()
+    if now >= nextSpawnAt:
+      spawnService(options)
+      nextSpawnAt = now + 0.25
+    sleep(25)
   raise newException(IOError, "ttyglass service did not become ready: " & lastError)
 
 proc resolveShell*(requested = ""): string =

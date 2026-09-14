@@ -270,8 +270,10 @@ else:
     {.cast(gcsafe).}:
       let listener = net.newSocket(net.AF_UNIX, net.SOCK_STREAM, net.IPPROTO_NONE)
       try:
-        if fileExists(server.endpoint):
+        try:
           removeFile(server.endpoint)
+        except OSError:
+          discard
         listener.bindUnix(server.endpoint)
         setFilePermissions(server.endpoint, {fpUserRead, fpUserWrite})
         listener.listen()
@@ -295,8 +297,7 @@ else:
       finally:
         listener.close()
         try:
-          if fileExists(server.endpoint):
-            removeFile(server.endpoint)
+          removeFile(server.endpoint)
         except OSError:
           discard
 
@@ -318,6 +319,18 @@ proc startControlServer*(handler: ControlHandler): ControlServer =
   result = ControlServer(endpoint: endpoint, handler: handler)
   result.stopped.store(false, moRelaxed)
   createThread(result.thread, controlLoop, result)
+  let deadline = epochTime() + 5.0
+  var lastError = ""
+  while epochTime() < deadline:
+    try:
+      discard callEndpoint(result.endpoint, "{}")
+      return
+    except CatchableError:
+      lastError = getCurrentException().msg
+      sleep(25)
+  result.stopped.store(true, moRelaxed)
+  joinThread(result.thread)
+  raise newException(IOError, "The ttyglass control plane did not become ready: " & lastError)
 
 proc controlCall*(descriptor: ServiceDescriptor, payload: string): string =
   callEndpoint(descriptor.endpoint, payload)
