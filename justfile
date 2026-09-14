@@ -13,6 +13,18 @@ check:
 build:
 	nub run build
 
+# Start the documentation website locally.
+docs port="4321":
+	nub exec --cwd apps/docs astro dev --host 127.0.0.1 --port {{ port }}
+
+# Build the static documentation website into docs/.
+docs-build:
+	nub run docs:build
+
+# Validate the documentation website.
+docs-check:
+	nub run docs:check
+
 # Run automated tests, including a real PTY or ConPTY session.
 test:
 	nub run test
@@ -31,6 +43,7 @@ check-tuis: build
 	go -C tests/go vet ./...
 	cargo check --manifest-path tests/rust/Cargo.toml --target-dir .local/rust-target
 	nim check --threads:on --hints:off tests/nim/main.nim
+	ruby -c tests/ruby/main.rb
 
 # Exercise every stress TUI through a real ttyglass PTY or ConPTY session.
 verify-tuis: check-tuis
@@ -53,6 +66,10 @@ tui-rust *args: build
 tui-nim *args: build
 	nim c --threads:on --hints:off --nimcache:.local/nimcache --out:.local/ttyglass-stress-nim.exe tests/nim/main.nim
 	node dist/cli.js -- .local/ttyglass-stress-nim.exe {{args}}
+
+# Run the Ruby stress TUI through ttyglass.
+tui-ruby *args: build
+	node dist/cli.js -- ruby tests/ruby/main.rb {{args}}
 
 # Run ttyglass after a local build. Pass ttyglass arguments after `--`.
 run *args:

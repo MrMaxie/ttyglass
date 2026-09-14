@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { spawn } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
 import { createServer } from 'node:net';
 import { resolve } from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
@@ -57,7 +57,13 @@ const fixtures: Fixture[] = [
     command: resolve('.local', 'ttyglass-stress-nim.exe'),
     arguments: ['--duration-ms', '10000'],
   },
+  {
+    name: 'Ruby',
+    command: 'ruby',
+    arguments: [resolve('tests', 'ruby', 'main.rb'), '--duration-ms', '10000'],
+  },
 ];
+const verificationEnvironment = { ...process.env, TTYGLASS_RETENTION_MS: '800' };
 
 async function reservePort(): Promise<number> {
   const server = createServer();
@@ -101,8 +107,13 @@ async function verifyFixture(fixture: Fixture): Promise<void> {
   const port = await reservePort();
   const cli = spawn(
     process.execPath,
-    ['dist/cli.js', '--port', String(port), '--', fixture.command, ...fixture.arguments],
-    { cwd: process.cwd(), stdio: ['ignore', 'pipe', 'pipe'], windowsHide: true },
+    ['dist/cli.js', 'start', '--port', String(port), '--', fixture.command, ...fixture.arguments],
+    {
+      cwd: process.cwd(),
+      env: verificationEnvironment,
+      stdio: ['ignore', 'pipe', 'pipe'],
+      windowsHide: true,
+    },
   );
   let cliOutput = '';
   cli.stdout.setEncoding('utf8');
@@ -115,18 +126,21 @@ async function verifyFixture(fixture: Fixture): Promise<void> {
   });
 
   let socket: WebSocket | undefined;
+  let sessionId = '';
   try {
     const printedUrl = await waitUntil(
-      () => cliOutput.match(/ttyglass: (http:\/\/127\.0\.0\.1:\d+\/#token=\S+)/)?.[1],
+      () => cliOutput.match(/ttyglass: (http:\/\/127\.0\.0\.1:\d+\/sessions\/[^#\s]+#token=\S+)/)?.[1],
       `${fixture.name} ttyglass startup`,
     );
     const url = new URL(printedUrl);
     const token = new URLSearchParams(url.hash.slice(1)).get('token');
     assert.ok(token);
+    sessionId = url.pathname.split('/').at(-1) ?? '';
+    assert.ok(sessionId);
 
     const messages: ServerMessage[] = [];
     const RuntimeWebSocket = WebSocket as unknown as NodeWebSocketConstructor;
-    socket = new RuntimeWebSocket(`${url.origin.replace('http', 'ws')}/terminal?token=${token}`, {
+    socket = new RuntimeWebSocket(`${url.origin.replace('http', 'ws')}/terminal?session=${sessionId}&token=${token}`, {
       headers: { Origin: url.origin },
     });
     socket.addEventListener('message', (event) => {
@@ -160,6 +174,13 @@ async function verifyFixture(fixture: Fixture): Promise<void> {
     process.stdout.write(`verified ${fixture.name}\n`);
   } finally {
     socket?.close();
+    if (sessionId) {
+      spawnSync(process.execPath, ['dist/cli.js', 'stop', sessionId], {
+        cwd: process.cwd(),
+        stdio: 'ignore',
+        windowsHide: true,
+      });
+    }
     if (cli.exitCode === null) cli.kill('SIGTERM');
     await Promise.race([
       new Promise<void>((resolveExit) => cli.once('exit', () => resolveExit())),
@@ -179,3 +200,4 @@ assert.notEqual(selectedFixtures.length, 0, `Unknown fixture: ${process.argv[2]}
 for (const fixture of selectedFixtures) {
   await verifyFixture(fixture);
 }
+await delay(1_000);

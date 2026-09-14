@@ -8,6 +8,11 @@ import ./ipc
 when defined(linux):
   {.passL: "-lutil".}
 
+  const PrSetChildSubreaper = 36.cint
+
+  proc prctl(option: cint, argument2, argument3, argument4, argument5: culong): cint
+    {.importc, header: "<sys/prctl.h>".}
+
 type WindowSize {.bycopy.} = object
   rows: cushort
   columns: cushort
@@ -102,6 +107,23 @@ proc outputLoop() {.thread, gcsafe.} =
     copyMem(addr payload[0], addr buffer[0], count)
     sendFrame(OutputFrame, payload)
 
+proc configureSubreaper(): bool =
+  when defined(linux):
+    prctl(PrSetChildSubreaper, 1, 0, 0, 0) == 0
+  else:
+    true
+
+proc reapDescendants() =
+  when defined(linux):
+    var status: cint
+    while true:
+      let reaped = waitpid(-1, status, 0)
+      if reaped > 0:
+        continue
+      if errno == EINTR:
+        continue
+      break
+
 proc runPosixPtyHost*(start: StartControl, input, output: Stream): int =
   initLock(outputLock)
   initLock(stateLock)
@@ -109,6 +131,10 @@ proc runPosixPtyHost*(start: StartControl, input, output: Stream): int =
   hostOutput = output
   masterDescriptor = -1
   childPid = -1
+
+  if not configureSubreaper():
+    output.writeFrame(ErrorFrame, "Could not configure process-tree cleanup.")
+    return 1
 
   var initialSize = WindowSize(
     rows: max(1, min(500, start.rows)).cushort,
@@ -134,6 +160,8 @@ proc runPosixPtyHost*(start: StartControl, input, output: Stream): int =
 
   var status: cint
   discard waitpid(childPid, status, 0)
+  discard kill(-childPid, SIGTERM)
+  reapDescendants()
   let exitCode =
     if WIFEXITED(status): WEXITSTATUS(status).int
     elif WIFSIGNALED(status): 128 + WTERMSIG(status).int

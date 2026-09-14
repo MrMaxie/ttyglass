@@ -58,6 +58,7 @@ const platformTargets = new Map([
 
 const target = platformTargets.get(`${process.platform}:${process.arch}`);
 assert.ok(target, `unsupported verification platform ${process.platform}/${process.arch}`);
+const verificationEnvironment = { ...process.env, TTYGLASS_RETENTION_MS: '800' };
 
 async function run(
   command: string,
@@ -143,8 +144,9 @@ async function terminateProcessTree(child: ReturnType<typeof spawn>): Promise<vo
 async function verifySession(executable: string): Promise<void> {
   const port = await reservePort();
   const fixture = resolve(projectDirectory, 'test', 'fixtures', 'tui-fixture.ts');
-  const child = spawn(executable, ['--port', String(port), '--', process.execPath, fixture], {
+  const child = spawn(executable, ['start', '--port', String(port), '--', process.execPath, fixture], {
     cwd: projectDirectory,
+    env: verificationEnvironment,
     stdio: ['ignore', 'pipe', 'pipe'],
     windowsHide: true,
   });
@@ -162,17 +164,20 @@ async function verifySession(executable: string): Promise<void> {
     output += data;
   });
   let socket: WebSocket | undefined;
+  let sessionId = '';
   try {
     const printedUrl = await waitUntil(
-      () => output.match(/ttyglass: (http:\/\/127\.0\.0\.1:\d+\/#token=\S+)/)?.[1],
+      () => output.match(/ttyglass: (http:\/\/127\.0\.0\.1:\d+\/sessions\/[^#\s]+#token=\S+)/)?.[1],
       'CLI startup',
     );
     const url = new URL(printedUrl);
     const token = new URLSearchParams(url.hash.slice(1)).get('token');
     assert.ok(token);
+    sessionId = url.pathname.split('/').at(-1) ?? '';
+    assert.ok(sessionId);
     const messages: Array<Record<string, unknown>> = [];
     const RuntimeWebSocket = WebSocket as unknown as WebSocketWithHeaders;
-    socket = new RuntimeWebSocket(`${url.origin.replace('http', 'ws')}/terminal?token=${token}`, {
+    socket = new RuntimeWebSocket(`${url.origin.replace('http', 'ws')}/terminal?session=${sessionId}&token=${token}`, {
       headers: { Origin: url.origin },
     });
     socket.addEventListener('message', (event) => {
@@ -206,7 +211,9 @@ async function verifySession(executable: string): Promise<void> {
     );
   } finally {
     socket?.close();
+    if (sessionId) await run(executable, ['stop', sessionId], { env: verificationEnvironment });
     await terminateProcessTree(child);
+    await delay(1_000);
   }
 }
 

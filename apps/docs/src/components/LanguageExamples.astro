@@ -1,0 +1,175 @@
+---
+import { Code } from 'astro:components';
+import { siGo, siNim, siNodedotjs, siPython, siRuby, siRust, type SimpleIcon } from 'simple-icons';
+import { languageExamples } from '../data/examples';
+
+const languageIcons: Record<string, SimpleIcon> = {
+  node: siNodedotjs,
+  python: siPython,
+  go: siGo,
+  rust: siRust,
+  nim: siNim,
+  ruby: siRuby,
+};
+---
+
+<section class="section examples-section" id="examples" aria-labelledby="examples-title">
+  <div class="section-heading">
+    <p class="eyebrow">Examples</p>
+    <h2 id="examples-title">Pick a language and run it.</h2>
+    <p>Copy the command and file. Each example also shows how to send useful messages to Diagnostics.</p>
+  </div>
+
+  <div class="example-picker" data-example-picker>
+    <div class="language-tabs" role="tablist" aria-label="Programming language">
+      {
+        languageExamples.map((example, index) => {
+          const icon = languageIcons[example.id];
+          const iconColor = example.id === 'rust' ? '#f1f4f4' : `#${icon.hex}`;
+
+          return (
+          <button
+            type="button"
+            role="tab"
+            id={`tab-${example.id}`}
+            aria-controls={`panel-${example.id}`}
+            aria-selected={index === 0 ? 'true' : 'false'}
+            tabindex={index === 0 ? 0 : -1}
+          >
+            <svg class="language-icon" viewBox="0 0 24 24" aria-hidden="true" style={`color: ${iconColor}`}>
+              <path fill="currentColor" d={icon.path}></path>
+            </svg>
+            {example.label}
+          </button>
+          );
+        })
+      }
+    </div>
+
+    {
+      languageExamples.map((example, index) => (
+        <article
+          class="example-panel"
+          role="tabpanel"
+          id={`panel-${example.id}`}
+          aria-labelledby={`tab-${example.id}`}
+          hidden={index !== 0}
+        >
+          <section class="example-block command-example" aria-label="Run command">
+            <div class="code-heading">
+              <span>Run with ttyglass</span>
+              <button type="button" class="copy-button" data-copy-target={`command-${example.id}`}>
+                Copy
+              </button>
+            </div>
+            <div id={`command-${example.id}`} class="highlighted-code">
+              <Code
+                code={example.command}
+                lang="shellscript"
+                theme="github-dark"
+                style="background-color:#080d0f"
+              />
+            </div>
+          </section>
+
+          <section class="example-block source-example" aria-label={`${example.fileName} source code`}>
+            <div class="code-heading">
+              <span>{example.fileName}</span>
+              <button type="button" class="copy-button" data-copy-target={`code-${example.id}`}>
+                Copy
+              </button>
+            </div>
+            <div id={`code-${example.id}`} class="highlighted-code">
+              <Code
+                code={example.code}
+                lang={example.language}
+                theme="github-dark"
+                style="background-color:#080d0f"
+              />
+            </div>
+          </section>
+
+          <div class="example-meta">
+            <span>
+              Diagnostics show what the app is doing beside the terminal, without mixing messages into the TUI.
+            </span>
+            {example.fullExampleUrl && (
+              <a class="example-source-link" href={example.fullExampleUrl}>View the complete example</a>
+            )}
+          </div>
+        </article>
+      ))
+    }
+  </div>
+</section>
+
+<script>
+  async function copyText(value: string): Promise<boolean> {
+    try {
+      await navigator.clipboard.writeText(value);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  function activateTab(tab: HTMLButtonElement): void {
+    const picker = tab.closest<HTMLElement>('[data-example-picker]');
+    if (!picker) return;
+
+    for (const item of picker.querySelectorAll<HTMLButtonElement>('[role="tab"]')) {
+      const active = item === tab;
+      item.setAttribute('aria-selected', String(active));
+      item.tabIndex = active ? 0 : -1;
+    }
+
+    for (const panel of picker.querySelectorAll<HTMLElement>('[role="tabpanel"]')) {
+      panel.hidden = panel.id !== tab.getAttribute('aria-controls');
+    }
+  }
+
+  document.addEventListener('click', (event) => {
+    const target = event.target;
+    if (!(target instanceof Element)) return;
+
+    const tab = target.closest<HTMLButtonElement>('[role="tab"]');
+    if (tab) activateTab(tab);
+
+    const button = target.closest<HTMLButtonElement>('[data-copy-target]');
+    if (!button) return;
+    const source = document.getElementById(button.dataset.copyTarget ?? '');
+    if (!source) return;
+
+    void copyText(source.textContent ?? '').then((copied) => {
+      if (!copied) return;
+      const originalLabel = button.textContent ?? 'Copy';
+      button.textContent = 'Copied';
+      button.dataset.copied = 'true';
+      window.setTimeout(() => {
+        button.textContent = originalLabel;
+        delete button.dataset.copied;
+      }, 1600);
+    });
+  });
+
+  document.addEventListener('keydown', (event) => {
+    const target = event.target;
+    if (!(target instanceof HTMLButtonElement) || target.getAttribute('role') !== 'tab') return;
+    const tabs = Array.from(
+      target.closest('[role="tablist"]')?.querySelectorAll<HTMLButtonElement>('[role="tab"]') ?? [],
+    );
+    const current = tabs.indexOf(target);
+    if (current < 0) return;
+
+    let next = current;
+    if (event.key === 'ArrowRight') next = (current + 1) % tabs.length;
+    else if (event.key === 'ArrowLeft') next = (current - 1 + tabs.length) % tabs.length;
+    else if (event.key === 'Home') next = 0;
+    else if (event.key === 'End') next = tabs.length - 1;
+    else return;
+
+    event.preventDefault();
+    tabs[next]?.focus();
+    if (tabs[next]) activateTab(tabs[next]);
+  });
+</script>

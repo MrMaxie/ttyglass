@@ -1,0 +1,122 @@
+---
+import AgentContextPreview from './AgentContextPreview.astro';
+import MorphingTerminalPreview from './MorphingTerminalPreview.astro';
+import TerminalPreview from './TerminalPreview.astro';
+---
+
+<section class="views-story" id="how-it-works" data-views-story aria-labelledby="views-title">
+  <div class="views-shell">
+    <ol class="views-steps">
+      <li data-view-step="0" data-active="true">
+        <div class="views-step-content">
+          <div class="views-section-intro">
+            <p class="eyebrow">One session, three clients</p>
+            <h2 id="views-title">The same real terminal everywhere.</h2>
+          </div>
+          <span class="views-step-index">01</span>
+          <h3>The program starts in a real terminal</h3>
+          <p>The PTY or ConPTY starts immediately, even when no browser is open.</p>
+          <div class="views-mobile-preview">
+            <TerminalPreview variant="terminal" caption="The program running in its real terminal." />
+          </div>
+        </div>
+      </li>
+      <li data-view-step="1">
+        <div class="views-step-content">
+          <span class="views-step-index">02</span>
+          <h3>The browser attaches to the same session</h3>
+          <p>
+            Several browser clients can share the live TUI, process state, dimensions, and diagnostics.
+          </p>
+          <div class="views-mobile-preview">
+            <TerminalPreview
+              variant="ttyglass"
+              caption="The same TUI in ttyglass with process controls and diagnostics."
+            />
+          </div>
+        </div>
+      </li>
+      <li data-view-step="2">
+        <div class="views-step-content">
+          <span class="views-step-index">03</span>
+          <h3>The agent controls it without a browser</h3>
+          <p>
+            Stateless CLI, JSONL, and MCP expose the screen, raw output, input, resize, status, and diagnostics.
+          </p>
+          <div class="views-mobile-preview">
+            <AgentContextPreview />
+          </div>
+        </div>
+      </li>
+    </ol>
+
+    <div class="views-preview-column" aria-hidden="true">
+      <div class="views-preview-sticky">
+        <div class="views-preview-stage">
+          <div class="views-preview views-preview-morph" data-view-preview="morph">
+            <MorphingTerminalPreview />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  import { createTimeline, onScroll, stagger } from 'animejs';
+
+  const story = document.querySelector<HTMLElement>('[data-views-story]');
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const desktop = window.matchMedia('(min-width: 821px)').matches;
+
+  if (story && desktop && !reducedMotion) {
+    const morph = story.querySelector<HTMLElement>('[data-view-preview="morph"]');
+    const frame = story.querySelector<HTMLElement>('[data-morph-frame]');
+    const nativeParts = story.querySelectorAll<HTMLElement>('[data-morph-native]');
+    const browserParts = story.querySelectorAll<HTMLElement>('[data-morph-browser]');
+    const agentParts = story.querySelectorAll<HTMLElement>('[data-morph-agent]');
+    const agentTitle = story.querySelector<HTMLElement>('.morph-agent-title');
+    const agentStream = story.querySelector<HTMLElement>('.morph-agent-stream');
+    const diagnostics = story.querySelector<HTMLElement>('[data-morph-diagnostics]');
+    const logRows = story.querySelectorAll<HTMLElement>('.views-preview-morph [data-agent-log]');
+    const steps = [...story.querySelectorAll<HTMLElement>('[data-view-step]')];
+
+    if (morph && frame && diagnostics && agentTitle && agentStream) {
+      story.dataset.motion = 'desktop';
+
+      let activeStep = -1;
+      const updateStep = (progress: number) => {
+        const nextStep = progress < 0.31 ? 0 : progress < 0.72 ? 1 : 2;
+        if (nextStep === activeStep) return;
+        activeStep = nextStep;
+        steps.forEach((step, index) => {
+          step.dataset.active = String(index === activeStep);
+        });
+      };
+
+      updateStep(0);
+
+      createTimeline({
+        autoplay: onScroll({
+          target: story,
+          enter: 'top top',
+          leave: 'bottom bottom',
+          sync: true,
+          onUpdate: (observer) => updateStep(observer.progress),
+        }),
+        defaults: { ease: 'linear' },
+      })
+        .add(nativeParts, { opacity: [1, 0], duration: 180 }, 250)
+        .add(browserParts, { opacity: [0, 1], duration: 180 }, 250)
+        .add(frame, { paddingTop: [42, 54], duration: 220 }, 230)
+        .add(diagnostics, { height: [0, 104], opacity: [0, 1], duration: 240 }, 250)
+        .add(browserParts, { opacity: [1, 0], duration: 140 }, 650)
+        .add(diagnostics, { height: [104, 0], opacity: [1, 0], duration: 180 }, 650)
+        .add(frame, { width: ['100%', '64%'], x: [0, 16], paddingTop: [54, 32], duration: 260 }, 730)
+        .add(agentTitle, { height: [0, 52], duration: 220 }, 750)
+        .add(agentStream, { height: [0, 128], duration: 220 }, 770)
+        .add(agentParts, { opacity: [0, 1], duration: 190 }, 810)
+        .add(logRows, { y: [12, 0], opacity: [0, 1], delay: stagger(42), duration: 150 }, 900);
+    }
+  }
+</script>

@@ -1,6 +1,6 @@
 ---
 name: ttyglass
-description: Run and inspect a real terminal user interface in ttyglass when Claude Code needs visual evidence, keyboard interaction, resize verification, or separate diagnostics without modifying the observed project.
+description: Run and inspect real terminal sessions in ttyglass through browser, stateless CLI, or MCP when Claude Code needs visual or headless evidence without modifying the observed project.
 ---
 
 # Inspect a TUI with ttyglass
@@ -11,11 +11,11 @@ Use ttyglass to let Claude Code see and operate a real TUI through a local brows
 
 1. Identify the exact project command that normally starts the TUI. Do not create a mock screen or project-specific wrapper.
 2. From the tested project directory, run `ttyglass -- <command> <arguments>`. Put ttyglass options before `--` and preserve the tested command after it.
-3. Read the authenticated loopback URL printed by ttyglass and open that exact URL with an available browser tool.
-4. Verify the real rendered state before interacting. Exercise only actions authorized by the user.
+3. For visual work, open the exact authenticated loopback URL. For headless work, use `ttyglass start --name <name>`, then `screen`, `output`, `input`, `resize`, `diagnostics`, and `stop` with the returned session id. Give concurrent sessions distinct names. Use `ttyglass mcp` when an MCP connection is available; pass `name` to `start_session` for the same result.
+4. Attach browser and headless clients to the same session when both rendered and structured terminal evidence are needed. Verify the real state before interacting. Exercise only actions authorized by the user.
 5. Check relevant terminal sizes, keyboard navigation, focus, errors, loading and empty states, and process exit behavior. Use Diagnostics for investigation data, not as a substitute for the visible TUI.
 6. Capture evidence only when requested or required by the parent task. State which states and sizes were actually observed.
-7. Close the browser client and stop ttyglass when finished. Confirm the observed process ended.
+7. Detach clients and explicitly stop sessions when finished. Confirm each observed process ended. Do not stop unrelated sessions in the shared service.
 
 ## Safety
 
