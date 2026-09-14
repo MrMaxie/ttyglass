@@ -268,7 +268,7 @@ else:
 
   proc controlLoop(server: ControlServer) {.thread, gcsafe.} =
     {.cast(gcsafe).}:
-      let listener = newSocket(AF_UNIX, SOCK_STREAM, IPPROTO_IP)
+      let listener = net.newSocket(net.AF_UNIX, net.SOCK_STREAM, net.IPPROTO_NONE)
       try:
         if fileExists(server.endpoint):
           removeFile(server.endpoint)
@@ -276,7 +276,7 @@ else:
         setFilePermissions(server.endpoint, {fpUserRead, fpUserWrite})
         listener.listen()
         while not server.stopped.load(moRelaxed):
-          var client = newSocket(AF_UNIX, SOCK_STREAM, IPPROTO_IP)
+          var client = net.newSocket(net.AF_UNIX, net.SOCK_STREAM, net.IPPROTO_NONE)
           try:
             listener.accept(client)
             let headerValue = client.receiveExact(4)
@@ -301,7 +301,7 @@ else:
           discard
 
   proc callEndpoint(endpoint, payload: string): string =
-    let socket = newSocket(AF_UNIX, SOCK_STREAM, IPPROTO_IP)
+    let socket = net.newSocket(net.AF_UNIX, net.SOCK_STREAM, net.IPPROTO_NONE)
     try:
       socket.connectUnix(endpoint)
       result = socket.exchange(payload)
