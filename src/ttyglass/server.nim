@@ -616,8 +616,13 @@ proc parseClientMessage(payload: string, session: ManagedSession) =
 proc websocketHandler(socket: WebSocket, event: WebSocketEvent, message: Message) {.gcsafe.} =
   {.cast(gcsafe).}:
     var session: ManagedSession
-    withLock application.lock:
-      if socket in application.socketSessions: session = application.socketSessions[socket]
+    let mappingDeadline = epochTime() + 1.0
+    while session.isNil:
+      withLock application.lock:
+        if socket in application.socketSessions: session = application.socketSessions[socket]
+      if not session.isNil or event != OpenEvent or epochTime() >= mappingDeadline:
+        break
+      sleep(1)
     if session.isNil:
       socket.close()
       return
