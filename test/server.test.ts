@@ -366,7 +366,12 @@ test('raw ANSI output reports absolute offsets after bounded-buffer truncation',
     assert.ok(result.endOffset > result.startOffset);
     assert.ok(Buffer.from(result.data, 'base64').byteLength <= 1024 * 1024);
   } finally {
-    cli(['stop', session.sessionId]);
+    // The short test retention may remove this exited session before cleanup runs.
+    spawnSync(nativeExecutable(), ['stop', session.sessionId], {
+      cwd: process.cwd(),
+      env: environment,
+      windowsHide: true,
+    });
   }
 });
 
