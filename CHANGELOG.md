@@ -6,6 +6,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Added
+
+- Publish the documentation site at `https://maxie.dev/ttyglass/` through a dedicated GitHub Pages workflow.
+
+### Changed
+
+- Wait for all five exact npm packages to become available before verifying a release from a fresh consumer and npm cache.
+
+### Security
+
+- Use npm Trusted Publishing for immutable package publication and reserve a narrowly scoped token for final dist-tag promotion.
+
 ## [1.1.0] - 2026-09-14
 
 ### Added

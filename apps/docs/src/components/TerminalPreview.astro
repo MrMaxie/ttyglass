@@ -1,5 +1,5 @@
 ---
-import logoUrl from '../../../../assets/ttyglass-logo.svg?url';
+import BrowserToolbar from './BrowserToolbar.astro';
 import TuiScreen from './TuiScreen.astro';
 
 interface Props {
@@ -18,19 +18,7 @@ const usesTtyglass = variant !== 'terminal';
 <figure class:list={['terminal-preview', `terminal-preview-${variant}`]}>
   {
     usesTtyglass ? (
-      <div class="terminal-toolbar">
-        <div class="terminal-identity">
-          <img src={logoUrl} alt="" width="24" height="24" />
-          <span>
-            <small>ttyglass</small>
-            <strong>node tests/typescript/main.ts</strong>
-          </span>
-        </div>
-        <span class="terminal-status"><i aria-hidden="true" /> Running <b>PID 8421</b></span>
-        <span class="terminal-control">Restart</span>
-        <span class="terminal-control">Display</span>
-        <span class="terminal-control">Diagnostics</span>
-      </div>
+      <BrowserToolbar />
     ) : (
       <div class="native-terminal-bar">
         <span class="terminal-dots" aria-hidden="true"><i /><i /><i /></span>

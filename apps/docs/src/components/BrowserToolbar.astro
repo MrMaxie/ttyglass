@@ -1,0 +1,34 @@
+---
+import logoUrl from '../../../../assets/ttyglass-logo.svg?url';
+
+interface Props {
+  sessionName?: string;
+  layout?: 'auto' | 'wide';
+}
+
+const { sessionName = 'App', layout = 'auto' } = Astro.props;
+---
+
+<div
+  class:list={['terminal-toolbar', { 'terminal-toolbar-wide': layout === 'wide' }]}
+  aria-label="ttyglass browser toolbar"
+>
+  <div class="terminal-brand">
+    <img src={logoUrl} alt="" width="24" height="24" />
+    <span>
+      <strong>TTYGLASS</strong>
+      <small>x.y.z</small>
+    </span>
+  </div>
+  <span class="terminal-session">
+    <strong>{sessionName}</strong>
+    <svg viewBox="0 0 16 16" aria-hidden="true"><path d="m3 6 5 5 5-5"></path></svg>
+  </span>
+  <span class="terminal-status"><i aria-hidden="true"></i> Running <b>PID 8421</b></span>
+  <span class="terminal-actions" aria-hidden="true">
+    <span class="terminal-control">Copy</span>
+    <span class="terminal-control">Restart</span>
+    <span class="terminal-control">Display</span>
+    <span class="terminal-control">Diagnostics</span>
+  </span>
+</div>

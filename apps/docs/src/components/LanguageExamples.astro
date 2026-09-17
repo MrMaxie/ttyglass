@@ -1,5 +1,6 @@
 ---
 import { Code } from 'astro:components';
+import type { ComponentProps } from 'astro/types';
 import { siGo, siNim, siNodedotjs, siPython, siRuby, siRust, type SimpleIcon } from 'simple-icons';
 import { languageExamples } from '../data/examples';
 
@@ -11,13 +12,31 @@ const languageIcons: Record<string, SimpleIcon> = {
   nim: siNim,
   ruby: siRuby,
 };
+
+type CodeTransformer = NonNullable<ComponentProps<typeof Code>['transformers']>[number];
+
+function sourceLines(focusedLines: number[] = []): CodeTransformer {
+  return {
+    name: 'ttyglass-source-lines',
+    pre(node) {
+      this.addClassToHast(node, 'has-focused-lines');
+    },
+    line(node, line) {
+      node.properties['data-line'] = String(line);
+      if (focusedLines.includes(line)) this.addClassToHast(node, 'focused-line');
+    },
+  };
+}
 ---
 
 <section class="section examples-section" id="examples" aria-labelledby="examples-title">
   <div class="section-heading">
     <p class="eyebrow">Examples</p>
     <h2 id="examples-title">Pick a language and run it.</h2>
-    <p>Copy the command and file. Each example also shows how to send useful messages to Diagnostics.</p>
+    <p>
+      Copy the complete command and every shown file to run the example. Highlighted lines are the only
+      ttyglass diagnostics integration points; the dimmed code is still included when you copy.
+    </p>
   </div>
 
   <div class="example-picker" data-example-picker>
@@ -72,6 +91,26 @@ const languageIcons: Record<string, SimpleIcon> = {
             </div>
           </section>
 
+          {example.setupFile && (
+            <section class="example-block source-example" aria-label={`${example.setupFile.fileName} source code`}>
+              <div class="code-heading">
+                <span>{example.setupFile.fileName}</span>
+                <button type="button" class="copy-button" data-copy-target={`setup-${example.id}`}>
+                  Copy
+                </button>
+              </div>
+              <div id={`setup-${example.id}`} class="highlighted-code">
+                <Code
+                  code={example.setupFile.code}
+                  lang={example.setupFile.language}
+                  theme="github-dark"
+                  transformers={[sourceLines()]}
+                  style="background-color:#080d0f"
+                />
+              </div>
+            </section>
+          )}
+
           <section class="example-block source-example" aria-label={`${example.fileName} source code`}>
             <div class="code-heading">
               <span>{example.fileName}</span>
@@ -84,6 +123,7 @@ const languageIcons: Record<string, SimpleIcon> = {
                 code={example.code}
                 lang={example.language}
                 theme="github-dark"
+                transformers={[sourceLines(example.focusLines)]}
                 style="background-color:#080d0f"
               />
             </div>

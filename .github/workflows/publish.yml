@@ -137,20 +137,16 @@ jobs:
           npm publish ./packages/linux-x64-gnu --access public --provenance --tag candidate
           npm publish ./packages/darwin-x64 --access public --provenance --tag candidate
           npm publish ./packages/darwin-arm64 --access public --provenance --tag candidate
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: Publish root package as candidate
         if: github.event_name == 'release'
         run: npm publish --access public --provenance --tag candidate
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: Verify exact published package
         run: |
-          for attempt in {1..12}; do
+          for attempt in {1..30}; do
             if node scripts/verify-package.ts --published; then
               exit 0
             fi
-            if [ "$attempt" -eq 12 ]; then
+            if [ "$attempt" -eq 30 ]; then
               exit 1
             fi
             echo "Registry verification attempt $attempt failed; retrying in 10 seconds"
@@ -165,4 +161,4 @@ jobs:
           npm dist-tag add @maxiedev/ttyglass-darwin-arm64@${VERSION} latest
           npm dist-tag add ttyglass@${VERSION} latest
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_DIST_TAG_TOKEN }}

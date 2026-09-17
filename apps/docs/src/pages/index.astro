@@ -3,17 +3,23 @@ import { Code } from 'astro:components';
 import logoUrl from '../../../../assets/ttyglass-logo.svg?url';
 import packageMetadata from '../../../../package.json';
 import LanguageExamples from '../components/LanguageExamples.astro';
+import Reference from '../components/Reference.astro';
 import TerminalPreview from '../components/TerminalPreview.astro';
 import ThreeViews from '../components/ThreeViews.astro';
 import '../styles/global.css';
 
 const base = import.meta.env.BASE_URL;
-const basePath = base.endsWith('/') ? base : `${base}/`;
-const quickStart = 'npx ttyglass --open -- lazygit';
-const headlessCommands = `ttyglass start --name "App" -- npm run tui
-ttyglass screen <session-id> --json
+const quickStart = 'npx ttyglass --open';
+const headlessCommands = `# Start an app in the background and name the session.
+ttyglass start --name "App" -- npm run tui
+
+# Read the terminal screen without opening a browser.
+ttyglass screen SESSION_ID --json
+
+# Let a compatible coding agent control ttyglass.
 ttyglass mcp`;
 const version = packageMetadata.version;
+const releaseUrl = `https://github.com/MrMaxie/ttyglass/releases/tag/v${version}`;
 ---
 
 <!doctype html>
@@ -49,13 +55,15 @@ const version = packageMetadata.version;
             </svg>
             Repo
           </a>
-          <a href="https://github.com/MrMaxie/ttyglass#readme" aria-label="Documentation">
+          <a href="#reference" aria-label="Documentation">
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path fill="currentColor" d="M5 3h5.5c.58 0 1.1.25 1.5.64.4-.39.92-.64 1.5-.64H19a2 2 0 0 1 2 2v14H13.5c-.28 0-.5.22-.5.5V21h-2v-1.5a.5.5 0 0 0-.5-.5H3V5a2 2 0 0 1 2-2Zm0 2v12h5.5c.17 0 .34.02.5.05V5.5a.5.5 0 0 0-.5-.5H5Zm8.5 0a.5.5 0 0 0-.5.5v11.55c.16-.03.33-.05.5-.05H19V5h-5.5Z"></path>
             </svg>
             Docs
           </a>
-          <span class="version-badge" aria-label={`Version ${version}`}>v{version}</span>
+          <a class="version-badge" href={releaseUrl} aria-label={`Release notes for version ${version}`}>
+            v{version}
+          </a>
         </nav>
       </div>
     </header>
@@ -74,11 +82,22 @@ const version = packageMetadata.version;
             <li>Browser, CLI, and MCP</li>
           </ul>
           <div class="quick-command">
-            <code id="quick-start-command">{quickStart}</code>
+            <Code
+              id="quick-start-command"
+              code={quickStart}
+              lang="shellscript"
+              theme="github-dark"
+              inline
+              style="background-color:transparent"
+            />
             <button type="button" class="copy-button" data-copy-target="quick-start-command">Copy</button>
           </div>
+          <p class="quick-command-note">
+            Opens your default shell. Add <code>-- &lt;your-command&gt;</code> to run an app instead.
+          </p>
           <div class="hero-actions">
             <a class="primary-action" href="#how-it-works">See how it works</a>
+            <a href={releaseUrl}>Read release notes</a>
           </div>
         </div>
         <TerminalPreview
@@ -107,6 +126,8 @@ const version = packageMetadata.version;
         </div>
       </section>
 
+      <Reference />
+
       <LanguageExamples />
 
       <section class="section agent-section" aria-labelledby="agent-title">
@@ -122,7 +143,12 @@ const version = packageMetadata.version;
           <a class="primary-action" href="https://github.com/MrMaxie/ttyglass/tree/master/skills">
             Open agent skills
           </a>
-          <a href={`${basePath}diagnostics.md`}>Add application diagnostics</a>
+          <div class="agent-doc-links">
+            <a href="https://github.com/MrMaxie/ttyglass/blob/master/docs/diagnostics.md">
+              Diagnostics guide
+            </a>
+            <a href="https://github.com/MrMaxie/ttyglass/blob/master/docs/typescript.md">TypeScript API</a>
+          </div>
         </div>
       </section>
     </main>

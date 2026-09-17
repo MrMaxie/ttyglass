@@ -28,6 +28,11 @@ interface PackMetadata {
 
 type PackOutput = PackMetadata[] | Record<string, PackMetadata>;
 
+interface PublishedPackage {
+  name: string;
+  requiredPath: string;
+}
+
 interface WebSocketWithHeaders {
   new (url: string, options: { headers: Record<string, string> }): WebSocket;
 }
@@ -59,6 +64,14 @@ const platformTargets = new Map([
 const target = platformTargets.get(`${process.platform}:${process.arch}`);
 assert.ok(target, `unsupported verification platform ${process.platform}/${process.arch}`);
 const verificationEnvironment = { ...process.env, TTYGLASS_RETENTION_MS: '800' };
+
+const publishedPackages: PublishedPackage[] = [
+  { name: 'ttyglass', requiredPath: 'dist/cli.js' },
+  { name: '@maxiedev/ttyglass-win32-x64', requiredPath: 'bin/ttyglass.exe' },
+  { name: '@maxiedev/ttyglass-linux-x64-gnu', requiredPath: 'bin/ttyglass' },
+  { name: '@maxiedev/ttyglass-darwin-x64', requiredPath: 'bin/ttyglass' },
+  { name: '@maxiedev/ttyglass-darwin-arm64', requiredPath: 'bin/ttyglass' },
+];
 
 async function run(
   command: string,
@@ -100,6 +113,35 @@ function runTool(
     ...options,
     env: { ...process.env, npm_config_dry_run: 'false', ...options.env },
   });
+}
+
+function findPackMetadata(packOutput: PackOutput, packageName: string): PackMetadata | undefined {
+  return Array.isArray(packOutput) ? packOutput.find((entry) => entry.name === packageName) : packOutput[packageName];
+}
+
+async function verifyPublishedPackages(version: string, cacheDirectory: string): Promise<void> {
+  for (const publishedPackage of publishedPackages) {
+    const packageSpec = `${publishedPackage.name}@${version}`;
+    let dryRun: CommandResult;
+    try {
+      dryRun = await runTool(npmRunner, ['pack', packageSpec, '--dry-run', '--json', '--ignore-scripts'], {
+        env: { npm_config_cache: cacheDirectory },
+      });
+    } catch (error) {
+      throw new Error(`registry package ${packageSpec} is unavailable`, { cause: error });
+    }
+    const metadata = findPackMetadata(JSON.parse(dryRun.stdout) as PackOutput, publishedPackage.name);
+    assert.ok(metadata, `npm pack did not describe ${packageSpec}`);
+    assert.equal(
+      metadata.version,
+      version,
+      `registry returned ${metadata.name}@${metadata.version} for ${packageSpec}`,
+    );
+    assert.ok(
+      metadata.files.some((file) => file.path === publishedPackage.requiredPath),
+      `${packageSpec} is missing ${publishedPackage.requiredPath}`,
+    );
+  }
 }
 
 async function reservePort(): Promise<number> {
@@ -259,6 +301,7 @@ try {
     const ephemeralConsumer = resolve(workspace, 'ephemeral-consumer');
     const ephemeralCache = resolve(workspace, 'ephemeral-cache');
     await mkdir(ephemeralConsumer);
+    await verifyPublishedPackages(manifest.version, ephemeralCache);
     await writeFile(
       resolve(ephemeralConsumer, 'package.json'),
       `${JSON.stringify({ private: true, type: 'module' }, null, 2)}\n`,
@@ -285,7 +328,7 @@ try {
         '--no-package-lock',
         `${manifest.name}@${manifest.version}`,
       ],
-      { cwd: consumer },
+      { cwd: consumer, env: { npm_config_cache: resolve(workspace, 'consumer-cache') } },
     );
   } else {
     const rootArchive = await pack(projectDirectory, workspace);
@@ -293,9 +336,7 @@ try {
 
     const dryRun = await runTool(npmRunner, ['pack', '--dry-run', '--json', '--ignore-scripts']);
     const packOutput = JSON.parse(dryRun.stdout) as PackOutput;
-    const metadata = Array.isArray(packOutput)
-      ? packOutput.find((entry) => entry.name === 'ttyglass')
-      : packOutput.ttyglass;
+    const metadata = findPackMetadata(packOutput, 'ttyglass');
     assert.ok(metadata, 'npm pack did not describe ttyglass');
     const packagedPaths = new Set(metadata.files.map((file) => file.path));
     for (const requiredPath of [

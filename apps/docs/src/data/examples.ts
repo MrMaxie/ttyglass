@@ -5,6 +5,12 @@ export interface LanguageExample {
   language: 'javascript' | 'python' | 'go' | 'rust' | 'nim' | 'ruby';
   command: string;
   code: string;
+  focusLines: number[];
+  setupFile?: {
+    fileName: string;
+    language: 'toml';
+    code: string;
+  };
   fullExampleUrl?: string;
 }
 
@@ -15,6 +21,7 @@ export const languageExamples: LanguageExample[] = [
     fileName: 'app.js',
     language: 'javascript',
     command: 'npx ttyglass --open -- node app.js',
+    focusLines: [1, 2, 16],
     code: String.raw`const endpoint = process.env.TTYGLASS_DIAGNOSTICS_URL;
 const token = process.env.TTYGLASS_DIAGNOSTICS_TOKEN;
 
@@ -47,6 +54,7 @@ setInterval(() => {
     fileName: 'app.py',
     language: 'python',
     command: 'npx ttyglass --open -- python app.py',
+    focusLines: [8, 9, 29],
     code: String.raw`import json
 import os
 import time
@@ -89,7 +97,8 @@ while True:
     label: 'Go',
     fileName: 'main.go',
     language: 'go',
-    command: 'npx ttyglass --open -- go run .',
+    command: 'npx ttyglass --open -- go run main.go',
+    focusLines: [12, 13, 28],
     code: String.raw`package main
 
 import (
@@ -132,6 +141,15 @@ func main() {
     fileName: 'src/main.rs',
     language: 'rust',
     command: 'npx ttyglass --open -- cargo run',
+    focusLines: [4, 5, 6, 7, 28],
+    setupFile: {
+      fileName: 'Cargo.toml',
+      language: 'toml',
+      code: `[package]
+name = "ttyglass-demo"
+version = "0.1.0"
+edition = "2024"`,
+    },
     code: String.raw`use std::{env, io::{self, Write}, net::TcpStream, thread, time::Duration};
 
 fn diagnostic() {
@@ -174,6 +192,7 @@ fn main() {
     fileName: 'app.nim',
     language: 'nim',
     command: 'npx ttyglass --open -- nim r app.nim',
+    focusLines: [4, 5, 24],
     code: String.raw`import std/[httpclient, json, os, strformat]
 
 proc diagnostic() =
@@ -214,6 +233,7 @@ while true:
     fileName: 'app.rb',
     language: 'ruby',
     command: 'npx ttyglass --open -- ruby app.rb',
+    focusLines: [6, 7, 25],
     code: String.raw`require 'json'
 require 'net/http'
 require 'uri'
