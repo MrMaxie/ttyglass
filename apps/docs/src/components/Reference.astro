@@ -1,0 +1,181 @@
+---
+import { Code } from 'astro:components';
+import packageMetadata from '../../../../package.json';
+
+const cliHelp = `ttyglass ${packageMetadata.version}
+
+Usage:
+  ttyglass [options] [-- <command> [arguments...]]
+  ttyglass serve [options]
+  ttyglass start [options] [-- <command> [arguments...]]
+  ttyglass sessions [--json]
+  ttyglass status <session-id> [--json]
+  ttyglass screen <session-id> [--json]
+  ttyglass output <session-id> [--from <offset>] [--json]
+  ttyglass input <session-id> (--text <value> | --base64 <value> | --stdin)
+  ttyglass resize <session-id> --cols <count> --rows <count>
+  ttyglass diagnostics <session-id> [--json]
+  ttyglass restart <session-id>
+  ttyglass stop <session-id>
+  ttyglass open [session-id]
+  ttyglass agent
+  ttyglass mcp
+
+Options:
+  --cwd <path>                 Run the session from this directory
+  --name <name>                Name the new session
+  --port <number>              Use a fixed loopback port when starting the service
+  --diagnostics-limit <count>  Keep 1-5000 application diagnostic entries
+  --output-limit <bytes>       Keep raw ANSI output bytes (default: 1048576)
+  --shell <executable>         Select the terminal-mode shell
+  --open                       Open the browser after creating a session
+  --no-open                    Do not open the browser (default)
+  -h, --help                   Show command help
+  --version                    Show version`;
+
+const mcpConfig = `{
+  "mcpServers": {
+    "ttyglass": {
+      "command": "ttyglass",
+      "args": ["mcp"]
+    }
+  }
+}`;
+
+const mcpTools = [
+  ['list_sessions', 'List the terminals and apps that ttyglass is keeping.'],
+  ['start_session', 'Start a new shell or command.'],
+  ['attach_session', 'Keep a session active while the agent works with it.'],
+  ['detach_session', 'Release the agent attachment without stopping the session.'],
+  ['get_status', 'Check whether the process is running, stopped, or finished.'],
+  ['read_screen', 'Read the terminal exactly as it currently appears.'],
+  ['read_output', 'Read raw terminal output for logs or deeper inspection.'],
+  ['send_input', 'Type text or keys into the terminal.'],
+  ['resize_terminal', 'Change the terminal width and height.'],
+  ['read_diagnostics', 'Read structured messages sent by the observed app.'],
+  ['restart_session', 'Restart a command that supports restarting.'],
+  ['stop_session', 'Stop the process and its child processes.'],
+];
+---
+
+<section class="section reference-section" id="reference" aria-labelledby="reference-title">
+  <div class="section-heading">
+    <p class="eyebrow">Reference</p>
+    <h2 id="reference-title">Use ttyglass from a browser, a script, or your coding agent.</h2>
+    <p>
+      Start a program once, then watch or control that same terminal in the browser, from another command
+      prompt, or through an AI coding tool. You do not need to restart the program when you switch between
+      them.
+    </p>
+  </div>
+
+  <div class="reference-intro-grid">
+    <article class="reference-card">
+      <p class="reference-label">Run an app</p>
+      <h3>Watch a command you already run.</h3>
+      <div class="highlighted-code reference-card-command">
+        <Code code="npx ttyglass --open -- npm run tui" lang="shellscript" theme="github-dark" style="background-color:#080d0f" />
+      </div>
+      <p>
+        Everything after <code>--</code> is the program and its arguments. ttyglass shows the complete command
+        in the browser and keeps it available to other clients.
+      </p>
+    </article>
+    <article class="reference-card">
+      <p class="reference-label">Open a terminal</p>
+      <h3>Start with a normal shell.</h3>
+      <div class="highlighted-code reference-card-command">
+        <Code code="npx ttyglass --open" lang="shellscript" theme="github-dark" style="background-color:#080d0f" />
+      </div>
+      <p>
+        With no command, ttyglass opens your usual shell, such as PowerShell or <code>/bin/sh</code>. The browser
+        labels it "No command". There is no Restart button because there is no fixed app command to repeat.
+      </p>
+    </article>
+  </div>
+
+  <article class="reference-block">
+    <div class="reference-copy">
+      <p class="reference-label">Command line</p>
+      <h3>Everything you can run from a terminal.</h3>
+      <p>
+        Run <code>ttyglass --help</code> to print this exact block. Most commands use the session ID returned by
+        <code>ttyglass start</code>, so scripts and agents can work without opening a browser.
+      </p>
+    </div>
+    <div class="highlighted-code reference-code cli-help" aria-label="ttyglass command help">
+      <Code code={cliHelp} lang="shellscript" theme="github-dark" style="background-color:#080d0f" />
+    </div>
+  </article>
+
+  <div class="reference-detail-grid">
+    <article class="reference-block reference-mcp">
+      <div class="reference-copy">
+        <p class="reference-label">For coding agents</p>
+        <h3>Let your agent use ttyglass directly.</h3>
+        <p>
+          MCP is the connection that lets a compatible coding agent see the terminal, type into it, resize it,
+          and read app diagnostics. Add this entry to the agent's MCP configuration.
+        </p>
+      </div>
+      <div class="highlighted-code reference-code" aria-label="MCP configuration">
+        <Code code={mcpConfig} lang="json" theme="github-dark" style="background-color:#080d0f" />
+      </div>
+      <details class="mcp-tool-reference">
+        <summary>What can the agent do?</summary>
+        <div class="mcp-tool-table-wrap">
+          <table>
+            <thead><tr><th>Tool</th><th>What it does</th></tr></thead>
+            <tbody>
+              {mcpTools.map(([tool, description]) => <tr><td><code>{tool}</code></td><td>{description}</td></tr>)}
+            </tbody>
+          </table>
+        </div>
+      </details>
+    </article>
+
+    <article class="reference-block reference-lifecycle">
+      <div class="reference-copy">
+        <p class="reference-label">What stays running</p>
+        <h3>What ttyglass keeps and for how long.</h3>
+      </div>
+      <dl>
+        <div>
+          <dt>One local service</dt>
+          <dd>
+            The first command starts ttyglass automatically. Use <code>ttyglass serve</code> only when you want
+            to keep that service visible in its own terminal.
+          </dd>
+        </div>
+        <div>
+          <dt>After you disconnect</dt>
+          <dd>
+            A session remains available for five minutes after its last client leaves. Finished sessions also
+            remain readable for five minutes.
+          </dd>
+        </div>
+        <div>
+          <dt>What clients can read</dt>
+          <dd>
+            Clients can read the current terminal screen and recent raw output. ttyglass keeps up to 1 MiB of
+            raw output by default.
+          </dd>
+        </div>
+        <div>
+          <dt>Who can connect</dt>
+          <dd>
+            Only programs and browser tabs on this computer can connect. Private tokens separate access to the
+            session list from access to an individual session.
+          </dd>
+        </div>
+        <div>
+          <dt>Supported systems</dt>
+          <dd>
+            Prebuilt packages support Windows x64, Linux x64 glibc, macOS x64, and macOS arm64. Installation
+            requires Node.js 24.18.0.
+          </dd>
+        </div>
+      </dl>
+    </article>
+  </div>
+</section>

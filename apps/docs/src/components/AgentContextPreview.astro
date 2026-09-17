@@ -7,7 +7,7 @@ import TuiScreen from './TuiScreen.astro';
 
   <div class="agent-context-grid">
     <section class="agent-screenshot-card">
-      <small>Screenshot</small>
+      <small>Screen snapshot</small>
       <TuiScreen />
     </section>
 
@@ -15,25 +15,25 @@ import TuiScreen from './TuiScreen.astro';
       <section>
         <small>Status</small>
         <pre>{`{
-  "running": true,
+  "state": "running",
   "pid": 8421
 }`}</pre>
       </section>
       <section>
-        <small>Actions</small>
-        <pre>{`[
-  { "name": "restart" }
-]`}</pre>
+        <small>Metadata</small>
+        <pre>{`{
+  "restartable": true
+}`}</pre>
       </section>
       <section>
         <small>Viewport</small>
-        <pre>{`{ "columns": 104, "rows": 28 }`}</pre>
+        <pre>{`{ "cols": 104, "rows": 28 }`}</pre>
       </section>
     </div>
   </div>
 
   <section class="agent-diagnostic-stream">
-    <div class="agent-stream-heading">Diagnostics</div>
+    <div class="agent-stream-heading">App diagnostics</div>
     <div class="agent-stream-rows">
       <code>{`{"level":"info","event":"fixture.ready","screen":"orders"}`}</code>
       <code>{`{"level":"debug","event":"viewport.changed","size":"104x28"}`}</code>
@@ -42,7 +42,7 @@ import TuiScreen from './TuiScreen.astro';
   </section>
 
   <figcaption>
-    The agent receives a terminal screenshot, process state, available actions, and application
+    The agent receives a terminal screen snapshot, process state, session metadata, and application
     diagnostics as data.
   </figcaption>
 </figure>

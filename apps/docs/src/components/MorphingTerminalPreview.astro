@@ -1,5 +1,5 @@
 ---
-import logoUrl from '../../../../assets/ttyglass-logo.svg?url';
+import BrowserToolbar from './BrowserToolbar.astro';
 import TuiScreen from './TuiScreen.astro';
 ---
 
@@ -16,21 +16,11 @@ import TuiScreen from './TuiScreen.astro';
       <strong>Terminal - node tests/typescript/main.ts</strong>
     </div>
 
-    <div class="terminal-toolbar morph-browser-bar" data-morph-browser>
-      <div class="terminal-identity">
-        <img src={logoUrl} alt="" width="24" height="24" />
-        <span>
-          <small>ttyglass</small>
-          <strong>node tests/typescript/main.ts</strong>
-        </span>
-      </div>
-      <span class="terminal-status"><i aria-hidden="true" /> Running <b>PID 8421</b></span>
-      <span class="terminal-control">Restart</span>
-      <span class="terminal-control">Display</span>
-      <span class="terminal-control">Diagnostics</span>
+    <div class="morph-browser-bar" data-morph-browser>
+      <BrowserToolbar layout="wide" />
     </div>
 
-    <div class="morph-agent-resource-label" data-morph-agent>Screenshot</div>
+    <div class="morph-agent-resource-label" data-morph-agent>Screen snapshot</div>
 
     <div class="morph-tui-surface" data-morph-surface>
       <TuiScreen />
@@ -49,24 +39,24 @@ import TuiScreen from './TuiScreen.astro';
     <section>
       <small>Status</small>
       <pre>{`{
-  "running": true,
+  "state": "running",
   "pid": 8421
 }`}</pre>
     </section>
     <section>
-      <small>Actions</small>
-      <pre>{`[
-  { "name": "restart" }
-]`}</pre>
+      <small>Metadata</small>
+      <pre>{`{
+  "restartable": true
+}`}</pre>
     </section>
     <section>
       <small>Viewport</small>
-      <pre>{`{ "columns": 104, "rows": 28 }`}</pre>
+      <pre>{`{ "cols": 104, "rows": 28 }`}</pre>
     </section>
   </aside>
 
   <section class="morph-agent-stream" data-morph-agent>
-    <div class="agent-stream-heading">Diagnostics</div>
+    <div class="agent-stream-heading">App diagnostics</div>
     <div class="agent-stream-rows">
       <code data-agent-log>{`{"level":"info","event":"fixture.ready","screen":"orders"}`}</code>
       <code data-agent-log>{`{"level":"debug","event":"viewport.changed","size":"104x28"}`}</code>

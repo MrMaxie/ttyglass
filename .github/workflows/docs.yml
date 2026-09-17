@@ -1,0 +1,92 @@
+name: Documentation
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - master
+    paths:
+      - .github/workflows/docs.yml
+      - apps/docs/**
+      - docs/**
+      - justfile
+      - nub.lock
+      - package.json
+      - README.md
+  pull_request:
+    branches:
+      - master
+    paths:
+      - .github/workflows/docs.yml
+      - apps/docs/**
+      - docs/**
+      - justfile
+      - nub.lock
+      - package.json
+      - README.md
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ttyglass-pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build documentation
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - name: Set up Node.js and Nub
+        uses: nubjs/setup-nub@21b317c170eee658503996209cf87b63481be35a # v0
+        with:
+          node-version: 24.18.0
+          nub-version: 0.7.5
+      - name: Install dependencies
+        run: nub ci
+      - name: Check documentation
+        run: nub run docs:check
+      - name: Build documentation
+        run: nub run docs:build
+      - name: Upload Pages artifact
+        if: github.event_name != 'pull_request'
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          path: docs
+
+  deploy:
+    name: Deploy documentation
+    if: github.event_name != 'pull_request'
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      id-token: write
+      pages: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
+      - name: Deploy GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
+      - name: Verify public documentation
+        env:
+          PAGE_URL: ${{ steps.deployment.outputs.page_url }}
+        run: |
+          for attempt in {1..12}; do
+            if curl --fail --location --silent --show-error "${PAGE_URL}" | grep --quiet "TTYGLASS"; then
+              exit 0
+            fi
+            if [ "$attempt" -eq 12 ]; then
+              exit 1
+            fi
+            echo "Documentation verification attempt $attempt failed; retrying in 10 seconds"
+            sleep 10
+          done

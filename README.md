@@ -10,22 +10,23 @@
 
 <p align="center">
   <a href="https://www.npmjs.com/package/ttyglass"><img src="https://img.shields.io/npm/v/ttyglass" alt="npm version"></a>
+  <a href="https://maxie.dev/ttyglass/"><img src="https://img.shields.io/badge/docs-maxie.dev%2Fttyglass-65b8c7" alt="Documentation"></a>
   <a href="https://github.com/MrMaxie/ttyglass/actions/workflows/publish.yml"><img src="https://github.com/MrMaxie/ttyglass/actions/workflows/publish.yml/badge.svg" alt="CI"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-Apache--2.0-blue" alt="Apache 2.0 license"></a>
 </p>
 
 ## Quick start
 
-Run a TUI without installing ttyglass:
+Open your default shell without installing ttyglass:
 
 ```sh
-npx ttyglass --open -- lazygit
+npx ttyglass --open
 ```
 
-Or run a project command from another directory:
+Or run a project command:
 
 ```sh
-npx ttyglass --open --cwd ../my-app -- npm run tui
+npx ttyglass --open -- npm run tui
 ```
 
 Everything before `--` configures ttyglass. Everything after `--` is the command and its arguments.
@@ -76,8 +77,8 @@ ttyglass [options] [-- <command> [arguments...]]
 Examples:
 
 ```sh
-npx ttyglass -- lazygit
-npx ttyglass --open -- btop
+npx ttyglass --open
+npx ttyglass --open -- npm run tui
 npx ttyglass --cwd ../app -- npm run tui
 npx ttyglass --port 4173 -- cargo run
 ```
@@ -193,6 +194,8 @@ The npm package includes [skills for Codex and Claude Code](skills/README.md) th
 
 ttyglass uses Nim for the executable, TypeScript for npm integration and diagnostic helpers, and Svelte for the browser UI.
 
+The published documentation is available at [maxie.dev/ttyglass](https://maxie.dev/ttyglass/).
+
 ```sh
 nimble install --depsOnly --accept
 nub install
@@ -203,7 +206,7 @@ just test
 just package-check
 ```
 
-Run `just docs` to preview the Astro website or `just docs-build` to rebuild the static output in `docs`.
+Run `just docs` to preview the Astro website or `just docs-build` to rebuild the static output in `docs`. Changes merged to `master` are deployed to GitHub Pages after the documentation checks pass.
 
 Run `just package-check` to validate the publishable package before a release.
 

@@ -96,6 +96,8 @@ import TerminalPreview from './TerminalPreview.astro';
 
       updateStep(0);
 
+      const browserToolbarHeight = frame.clientWidth <= 700 ? 88 : 54;
+
       createTimeline({
         autoplay: onScroll({
           target: story,
@@ -108,7 +110,7 @@ import TerminalPreview from './TerminalPreview.astro';
       })
         .add(nativeParts, { opacity: [1, 0], duration: 180 }, 250)
         .add(browserParts, { opacity: [0, 1], duration: 180 }, 250)
-        .add(frame, { paddingTop: [42, 54], duration: 220 }, 230)
+        .add(frame, { paddingTop: [42, browserToolbarHeight], duration: 220 }, 230)
         .add(diagnostics, { height: [0, 104], opacity: [0, 1], duration: 240 }, 250)
         .add(browserParts, { opacity: [1, 0], duration: 140 }, 650)
         .add(diagnostics, { height: [104, 0], opacity: [1, 0], duration: 180 }, 650)

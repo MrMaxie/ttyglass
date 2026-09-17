@@ -1,7 +1,7 @@
 import { defineConfig } from 'astro/config';
 
 export default defineConfig({
-  site: 'https://mrmaxie.github.io',
+  site: 'https://maxie.dev/',
   base: '/ttyglass',
   outDir: '../../docs',
   build: {
