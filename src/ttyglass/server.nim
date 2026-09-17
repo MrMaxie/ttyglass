@@ -175,7 +175,10 @@ proc metadataNode(session: ManagedSession, includeToken = false): JsonNode =
     }
     if includeToken:
       result["token"] = %session.token
-      result["url"] = %(application.origin & "/sessions/" & session.id & "#token=" & session.token)
+      result["url"] = %(
+        application.origin & "/sessions/" & session.id &
+        "#token=" & session.token & "&managementToken=" & application.token
+      )
 
 proc statusNode(session: ManagedSession): JsonNode =
   withLock session.lock:

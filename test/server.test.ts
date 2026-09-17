@@ -141,6 +141,16 @@ test('one service runs parallel sessions and broadcasts one session to two brows
   const isolated = await connect(secondSession);
   try {
     const origin = new URL(firstSession.url).origin;
+    const sessionUrlParameters = new URLSearchParams(new URL(firstSession.url).hash.slice(1));
+    assert.equal(sessionUrlParameters.get('token'), firstSession.token);
+    const managementToken = sessionUrlParameters.get('managementToken');
+    assert.ok(managementToken, 'Session URLs must authorize the shared session picker');
+    const authorizedList = await fetch(`${origin}/api/sessions`, {
+      headers: { Authorization: `Bearer ${managementToken}` },
+    });
+    assert.equal(authorizedList.status, 200);
+    assert.match(await authorizedList.text(), new RegExp(secondSession.sessionId));
+
     const unauthorizedList = await fetch(`${origin}/api/sessions`, {
       headers: { Authorization: `Bearer ${firstSession.token}` },
     });

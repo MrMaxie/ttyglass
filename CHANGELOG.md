@@ -14,6 +14,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - Wait for all five exact npm packages to become available before verifying a release from a fresh consumer and npm cache.
 
+### Fixed
+
+- Authorize the shared session selector when a browser opens the direct URL printed for a new session.
+
 ### Security
 
 - Use npm Trusted Publishing for immutable package publication and reserve a narrowly scoped token for final dist-tag promotion.

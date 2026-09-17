@@ -28,23 +28,32 @@
 
   type ClientMessage = TerminalMessage | { type: 'restart'; cols: number; rows: number } | { type: 'clearLogs' };
 
-  function readToken(): string | null {
+  function readTokens(): { managementToken: string | null; routeToken: string | null } {
     const hashParameters = new URLSearchParams(location.hash.slice(1));
     const hashToken = hashParameters.get('token');
+    const hashManagementToken = hashParameters.get('managementToken');
     if (hashToken !== null) {
       sessionStorage.setItem(`ttyglass.token.${location.pathname}`, hashToken);
-      history.replaceState(null, '', `${location.pathname}${location.search}`);
-      return hashToken;
     }
-    return sessionStorage.getItem(`ttyglass.token.${location.pathname}`);
+    if (hashManagementToken !== null) {
+      sessionStorage.setItem('ttyglass.managementToken', hashManagementToken);
+    }
+    if (hashToken !== null || hashManagementToken !== null) {
+      history.replaceState(null, '', `${location.pathname}${location.search}`);
+    }
+    return {
+      managementToken: hashManagementToken ?? sessionStorage.getItem('ttyglass.managementToken'),
+      routeToken: hashToken ?? sessionStorage.getItem(`ttyglass.token.${location.pathname}`),
+    };
   }
 
   const sessionMatch = location.pathname.match(/^\/sessions\/([^/]+)$/);
   const sessionId = sessionMatch?.[1] ?? null;
   const listMode = sessionId === null;
-  const routeToken = readToken();
+  const tokens = readTokens();
+  const routeToken = tokens.routeToken;
   if (listMode && routeToken !== null) sessionStorage.setItem('ttyglass.managementToken', routeToken);
-  const managementToken = listMode ? routeToken : sessionStorage.getItem('ttyglass.managementToken');
+  const managementToken = listMode ? routeToken : tokens.managementToken;
   const token = listMode ? null : routeToken;
   const version = __TTYGLASS_VERSION__;
   let command = $state('No command');
