@@ -24,3 +24,23 @@ ttyglass generates a complete Astro documentation site, but the repository does 
 - Release verification distinguishes registry propagation from consumer behavior and avoids stale npm cache state between attempts.
 - Future immutable npm publication no longer depends on a long-lived automation token after trusted publishers are configured for all five packages.
 - `NPM_DIST_TAG_TOKEN` remains required for the final `latest` promotion until npm supports dist-tag operations through trusted publishing.
+
+---
+
+## Archive Information
+
+**Archived:** 2026-09-17 13:13
+**Duration:** 0 days
+**Outcome:** Successfully implemented
+
+### Implementation
+
+- Merged as commit `9404a21147a32e56596f1eeffb6d2cbcfc80993a`.
+- Published and verified the GitHub Pages documentation site.
+- Configured npm Trusted Publishing for the root package and all four native packages.
+- Replaced the legacy GitHub Actions npm secret with the package-scoped `NPM_DIST_TAG_TOKEN` promotion secret.
+
+### Specs Updated
+
+- `openspec/specs/documentation-publishing/spec.md`
+- `openspec/specs/tui-observation/spec.md`

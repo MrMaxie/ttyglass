@@ -19,6 +19,6 @@
 ## 4. Verification and activation
 
 - [x] 4.1 Run formatting, static checks, tests, documentation checks and build, package verification, workflow validation, and `git diff --check`.
-- [ ] 4.2 Push the reviewed change and confirm the documentation workflow succeeds on all required events.
-- [ ] 4.3 Configure GitHub Pages and the repository homepage, then verify the public documentation URL.
-- [ ] 4.4 Configure npm trusted publishers for all five packages and replace the promotion secret before the next release.
+- [x] 4.2 Push the reviewed change and confirm the documentation workflow succeeds on all required events.
+- [x] 4.3 Configure GitHub Pages and the repository homepage, then verify the public documentation URL.
+- [x] 4.4 Configure npm trusted publishers for all five packages and replace the promotion secret before the next release.
