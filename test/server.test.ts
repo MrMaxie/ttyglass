@@ -6,7 +6,7 @@ import { resolve } from 'node:path';
 import test from 'node:test';
 import { setTimeout as delay } from 'node:timers/promises';
 
-import { nativeExecutable } from './helpers.ts';
+import { isolatedEnvironment, nativeExecutable } from './helpers.ts';
 
 interface SessionInfo {
   argv: string[];
@@ -40,7 +40,7 @@ interface NodeWebSocketConstructor {
   new (url: string, options: { headers: Record<string, string> }): WebSocket;
 }
 
-const environment = { ...process.env, TTYGLASS_RETENTION_MS: '3000' };
+const environment = { ...isolatedEnvironment, TTYGLASS_RETENTION_MS: '3000' };
 
 test.after(async () => {
   await delay(3_500);
@@ -366,12 +366,7 @@ test('raw ANSI output reports absolute offsets after bounded-buffer truncation',
     assert.ok(result.endOffset > result.startOffset);
     assert.ok(Buffer.from(result.data, 'base64').byteLength <= 1024 * 1024);
   } finally {
-    // The short test retention may remove this exited session before cleanup runs.
-    spawnSync(nativeExecutable(), ['stop', session.sessionId], {
-      cwd: process.cwd(),
-      env: environment,
-      windowsHide: true,
-    });
+    cli(['stop', session.sessionId]);
   }
 });
 

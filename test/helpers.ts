@@ -1,4 +1,13 @@
+import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
+
+const isolatedHome = resolve(tmpdir(), `ttyglass-test-${process.pid}`);
+
+export const isolatedEnvironment = {
+  ...process.env,
+  HOME: isolatedHome,
+  USERPROFILE: isolatedHome,
+};
 
 export function nativeExecutable(): string {
   const target = new Map([
