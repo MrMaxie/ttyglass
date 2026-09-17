@@ -6,7 +6,7 @@ import { resolve } from 'node:path';
 import test from 'node:test';
 import { setTimeout as delay } from 'node:timers/promises';
 
-import { nativeExecutable } from './helpers.ts';
+import { isolatedEnvironment, nativeExecutable } from './helpers.ts';
 
 interface SessionInfo {
   argv: string[];
@@ -40,7 +40,7 @@ interface NodeWebSocketConstructor {
   new (url: string, options: { headers: Record<string, string> }): WebSocket;
 }
 
-const environment = { ...process.env, TTYGLASS_RETENTION_MS: '3000' };
+const environment = { ...isolatedEnvironment, TTYGLASS_RETENTION_MS: '3000' };
 
 test.after(async () => {
   await delay(3_500);

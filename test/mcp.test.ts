@@ -6,7 +6,7 @@ import { setTimeout as delay } from 'node:timers/promises';
 import { Client } from '@modelcontextprotocol/client';
 import { StdioClientTransport } from '@modelcontextprotocol/client/stdio';
 
-import { nativeExecutable } from './helpers.ts';
+import { isolatedEnvironment, nativeExecutable } from './helpers.ts';
 
 interface ToolTextResult {
   content: Array<{ text: string; type: string }>;
@@ -25,7 +25,7 @@ test('the exact MCP client can drive a ttyglass session over stdio', async () =>
     command: nativeExecutable(),
     args: ['mcp'],
     cwd: process.cwd(),
-    env: { ...process.env, TTYGLASS_RETENTION_MS: '800' } as Record<string, string>,
+    env: { ...isolatedEnvironment, TTYGLASS_RETENTION_MS: '800' } as Record<string, string>,
     stderr: 'pipe',
   });
   const client = new Client({ name: 'ttyglass-test', version: '1.0.0' }, { capabilities: {} });
